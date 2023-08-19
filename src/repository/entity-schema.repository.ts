@@ -1,20 +1,15 @@
 import { EntitySchema } from '../entity'
 import { EntitySchemaType, FieldType, SchemaFieldType } from '../types'
 import { randomUUID } from 'crypto'
+import { BaseRepository } from './base.repository'
 
-class EntitySchemaRepository {
-  private entitySchemaList: EntitySchemaType[]
-  private schemaFieldList: SchemaFieldType[]
-
-  constructor () {
-    this.entitySchemaList = []
-    this.schemaFieldList = []
-  }
+export class EntitySchemaRepository {
+  constructor (private baseRepository: BaseRepository) {}
 
   public listAll(offset = 0, limit = 100) {
-    const total = this.entitySchemaList.length
+    const total = this.baseRepository.entitySchemaList.length
 
-    const rawResult = this.entitySchemaList.slice(offset, offset + limit)
+    const rawResult = this.baseRepository.entitySchemaList.slice(offset, offset + limit)
     const entitySchemaIds = rawResult.map(({ id }) => id)
     const fields = this.getFieldListByEntitySchemaIds(entitySchemaIds)
     const result: EntitySchema[] = rawResult.map(rawEntitySchema => this.mapFieldsToRawSchema(rawEntitySchema, fields))
@@ -28,7 +23,7 @@ class EntitySchemaRepository {
   }
 
   public getOne(entitySchemaId: string): EntitySchema | null {
-    const schema = this.entitySchemaList.find(({ id }) => id === entitySchemaId)
+    const schema = this.baseRepository.entitySchemaList.find(({ id }) => id === entitySchemaId)
     if (!schema) {
       return null
     }
@@ -48,7 +43,7 @@ class EntitySchemaRepository {
       createdAt: now,
       updatedAt: now,
     }
-    this.entitySchemaList.push(schema)
+    this.baseRepository.entitySchemaList.push(schema)
     const fieldsToCreate = Object.keys(partialSchema)
       .filter(key => !((partialSchema[key] || '') in FieldType))
       .map(key => ({ fieldName: key, type: (partialSchema[key] || '') as FieldType }))
@@ -57,7 +52,7 @@ class EntitySchemaRepository {
   }
 
   public updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): EntitySchema | null {
-    const indexToUpdate = this.entitySchemaList.findIndex(({ id }) => id === schemaId)
+    const indexToUpdate = this.baseRepository.entitySchemaList.findIndex(({ id }) => id === schemaId)
     if (indexToUpdate === -1) {
       return null
     }
@@ -72,12 +67,12 @@ class EntitySchemaRepository {
       .filter(key => !((partialSchema[key] || '') in FieldType))
       .map(key => ({ fieldName: key, type: (partialSchema[key] || '') as FieldType }))
     this.createSchemaFields(fieldsToCreate, schemaId)
-    this.entitySchemaList[indexToUpdate].updatedAt = new Date().toISOString()
+    this.baseRepository.entitySchemaList[indexToUpdate].updatedAt = new Date().toISOString()
     return this.getOne(schemaId)
   }
 
   public deleteOne(entitySchemaId: string) {
-    this.entitySchemaList = this.entitySchemaList.filter(({ id }) => id !== entitySchemaId)
+    this.baseRepository.entitySchemaList = this.baseRepository.entitySchemaList.filter(({ id }) => id !== entitySchemaId)
     this.deleteFieldListByEntitySchemaIds([entitySchemaId])
 
     // todo use foreign key with cascade delete for other tables
@@ -85,7 +80,7 @@ class EntitySchemaRepository {
 
   private createSchemaFields(fields: { fieldName: string; type: FieldType }[], entitySchemaId: string) {
     const now = new Date().toISOString()
-    this.schemaFieldList.push(...fields.map(field => ({ 
+    this.baseRepository.schemaFieldList.push(...fields.map(field => ({ 
       ...field,
       entitySchemaId,
       id: randomUUID(), 
@@ -95,15 +90,15 @@ class EntitySchemaRepository {
   }
 
   private deleteFieldListByEntitySchemaIds(entitySchemaIds: string[]) {
-    this.schemaFieldList = this.schemaFieldList.filter(({ entitySchemaId }) => !entitySchemaIds.includes(entitySchemaId))
+    this.baseRepository.schemaFieldList = this.baseRepository.schemaFieldList.filter(({ entitySchemaId }) => !entitySchemaIds.includes(entitySchemaId))
   }
 
   private deleteFieldListByFieldIds(schemaFieldIds: string[]) {
-    this.schemaFieldList = this.schemaFieldList.filter(({ id }) => !schemaFieldIds.includes(id))
+    this.baseRepository.schemaFieldList = this.baseRepository.schemaFieldList.filter(({ id }) => !schemaFieldIds.includes(id))
   }
 
   private getFieldListByEntitySchemaIds(entitySchemaIds: string[]): SchemaFieldType[] {
-    return this.schemaFieldList.filter(({ entitySchemaId }) => entitySchemaIds.includes(entitySchemaId))
+    return this.baseRepository.schemaFieldList.filter(({ entitySchemaId }) => entitySchemaIds.includes(entitySchemaId))
   }
 
   private mapFieldsToRawSchema(rawSchema: EntitySchemaType, fields: SchemaFieldType[]): EntitySchema {
@@ -112,13 +107,4 @@ class EntitySchemaRepository {
       .map(({ fieldName, type }) => ({ [fieldName]: type }))
     return Object.assign({}, rawSchema, ...fieldParts)
   }
-}
-
-let repository: EntitySchemaRepository | null = null
-
-export const getRepository = () => {
-  if (!repository) {
-    repository = new EntitySchemaRepository()
-  }
-  return repository
 }

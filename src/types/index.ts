@@ -6,4 +6,5 @@ export {
   FieldNumberValueType,
   FieldObjectValueType,
   FieldBooleanValueType,
+  FieldValueType,
 } from './field-value.type' 

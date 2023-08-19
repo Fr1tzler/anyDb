@@ -21,3 +21,5 @@ export type FieldObjectValueType = FieldValueBase & {
 export type FieldBooleanValueType = FieldValueBase & {
   boolenValue: boolean;
 }
+
+export type FieldValueType = FieldStringValueType | FieldNumberValueType | FieldObjectValueType | FieldBooleanValueType
