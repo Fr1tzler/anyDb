@@ -44,7 +44,9 @@ export class BaseRepository {
   }
 
   public set schemaFieldList(newSchemaFieldList: SchemaFieldType[]) {
+    const fieldIdDiff = this.getEntityIdDiff(this._schemaFieldList, newSchemaFieldList)
     this._schemaFieldList = newSchemaFieldList
+    this.fieldValueList = this._fieldValueList.filter(({schemaFieldId}) => !fieldIdDiff.includes(schemaFieldId))
   }
 
   public set entityList(newEntityList: EntityType[]) {

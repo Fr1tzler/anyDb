@@ -2,8 +2,17 @@ import { EntitySchema } from '../entity'
 import { EntitySchemaType, FieldType, SchemaFieldType } from '../types'
 import { randomUUID } from 'crypto'
 import { BaseRepository } from './base.repository'
+import { IListAllResponse } from '../utils/types'
 
-export class EntitySchemaRepository {
+export interface IEntitySchemaRepository {
+  listAll(offset: number, limit: number): IListAllResponse<EntitySchema>;
+  getOne(entitySchemaId: string): EntitySchema | null;
+  createOne(partialSchema: Partial<EntitySchema>): EntitySchema | null;
+  updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): EntitySchema | null;
+  deleteOne(entitySchemaId: string): void;
+}
+
+export class EntitySchemaRepository implements IEntitySchemaRepository {
   constructor (private baseRepository: BaseRepository) {}
 
   public listAll(offset = 0, limit = 100) {
@@ -22,7 +31,7 @@ export class EntitySchemaRepository {
     }
   }
 
-  public getOne(entitySchemaId: string): EntitySchema | null {
+  public getOne(entitySchemaId: string) {
     const schema = this.baseRepository.entitySchemaList.find(({ id }) => id === entitySchemaId)
     if (!schema) {
       return null
@@ -43,9 +52,12 @@ export class EntitySchemaRepository {
       createdAt: now,
       updatedAt: now,
     }
-    this.baseRepository.entitySchemaList.push(schema)
+    this.baseRepository.entitySchemaList.push(schema)    
     const fieldsToCreate = Object.keys(partialSchema)
-      .filter(key => !((partialSchema[key] || '') in FieldType))
+      .filter(key => {
+        const fieldTypes: string[] = Object.values(FieldType)
+        return fieldTypes.includes(partialSchema[key] ?? '') 
+      })
       .map(key => ({ fieldName: key, type: (partialSchema[key] || '') as FieldType }))
     this.createSchemaFields(fieldsToCreate, schemaId)
     return this.getOne(schemaId)
