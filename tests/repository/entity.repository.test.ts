@@ -47,8 +47,6 @@ describe('Entity repository', () => {
     })
 
     expect(createdEntity).toBeDefined()
-    console.log('@@@createdEntity', createdEntity)
-    
     expect(createdEntity?.username).toBe('John Doe')
     expect(createdEntity?.password).toBe('hashedPassword')
     expect(createdEntity?.balance).toBe(10)

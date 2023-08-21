@@ -4,7 +4,9 @@
   "description": "",
   "main": ".dist/index.js",
   "scripts": {
-    "start": "tsc --outDir ./.dist && node ./.dist/index.js",
+    "start:dev": "tsc --outDir ./.dist && node ./.dist/index.js",
+    "build": "tsc --outDir ./.dist",
+    "start": "node ./.dist/index.js",
     "lint": "eslint . --ext .ts",
     "test": "jest --coverage"
   },
