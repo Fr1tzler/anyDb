@@ -5,7 +5,7 @@ import { BaseRepository } from './base.repository'
 import { IListAllResponse } from '../utils/types'
 
 export interface IEntitySchemaRepository {
-  listAll(offset: number, limit: number): IListAllResponse<EntitySchema>;
+  listAll(offset?: number, limit?: number): IListAllResponse<EntitySchema>;
   getOne(entitySchemaId: string): EntitySchema | null;
   createOne(partialSchema: Partial<EntitySchema>): EntitySchema | null;
   updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): EntitySchema | null;

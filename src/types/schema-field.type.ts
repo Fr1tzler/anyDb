@@ -4,7 +4,7 @@ export enum FieldType {
   STRING = 'string',
   NUMBER = 'number',
   JSON = 'JSON',
-  BOOLEN = 'boolean',
+  BOOLEAN = 'boolean',
 }
 
 export type SchemaFieldType = BaseType & {

@@ -19,7 +19,7 @@ const entity: EntityType = {
 const schemaField: SchemaFieldType = {
   id: 's1',
   fieldName: 'booleanValue',
-  type: FieldType.BOOLEN,
+  type: FieldType.BOOLEAN,
   entitySchemaId: entitySchema.id,
   ...dateParams
 }
@@ -28,7 +28,8 @@ const fieldValue: FieldValueType = {
   schemaId: entitySchema.id,
   schemaFieldId: schemaField.id,
   entityId: entity.id,
-  boolenValue: true,
+  booleanValue: true,
+  type: FieldType.BOOLEAN,
   ...dateParams,
 }
 

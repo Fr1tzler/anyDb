@@ -7,4 +7,10 @@ export {
   FieldObjectValueType,
   FieldBooleanValueType,
   FieldValueType,
+  RecordType,
+  EntityFieldValueType,
+  fieldIsBoolean,
+  fieldIsNumber,
+  fieldIsString,
+  fieldIsObject,
 } from './field-value.type' 

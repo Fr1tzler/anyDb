@@ -8,7 +8,7 @@ console.log('@@@entitySchemaRepository', entitySchemaRepository)
 
 const newSchema = entitySchemaRepository.createOne({
   name: 'testSchema',
-  boolean: FieldType.BOOLEN,
+  boolean: FieldType.BOOLEAN,
   string: FieldType.STRING,
   number: FieldType.NUMBER,
   json: FieldType.JSON

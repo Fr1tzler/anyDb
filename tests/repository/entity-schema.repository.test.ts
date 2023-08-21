@@ -3,13 +3,13 @@ import { EntitySchemaRepository } from '../../src/repository/entity-schema.repos
 import { FieldType } from '../../src/types'
 
 // just something like real-word object
-const basicEntity = {
+const basicEntitySchema = {
   name: 'user',
   username: FieldType.STRING,
   password: FieldType.STRING,
   balance: FieldType.NUMBER,
-  isAdmin: FieldType.BOOLEN,
-
+  isAdmin: FieldType.BOOLEAN,
+  locationInfo: FieldType.JSON,
 }
 
 describe('Entity schema repository', () => {
@@ -18,7 +18,7 @@ describe('Entity schema repository', () => {
 
   test('Skip entity w/o name creation', () => {
     const nullishEntity = entitySchemaRepository.createOne({
-      ...basicEntity,
+      ...basicEntitySchema,
       name: undefined
     })
 
@@ -26,11 +26,11 @@ describe('Entity schema repository', () => {
   })
 
   test('Entity create', () => {
-    const createdEntity = entitySchemaRepository.createOne(basicEntity)
+    const createdEntity = entitySchemaRepository.createOne(basicEntitySchema)
     
     expect(createdEntity).toBeDefined()
     expect(baseRepository.entitySchemaList).toHaveLength(1)
-    expect(baseRepository.schemaFieldList).toHaveLength(4)
+    expect(baseRepository.schemaFieldList).toHaveLength(5)
     expect(baseRepository.entityList).toHaveLength(0)
     expect(baseRepository.fieldValueList).toHaveLength(0)
   })
