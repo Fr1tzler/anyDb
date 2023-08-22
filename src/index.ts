@@ -1,18 +1,13 @@
-import { getBaseRepository } from './repository/base.repository'
-import { EntitySchemaRepository } from './repository/entity-schema.repository'
-import { FieldType } from './types'
+import { createServer, ServerResponse, IncomingMessage } from 'http'
+import { applyMigrations } from './database/apply-migrations'
+import { dbQuery } from './database/connection'
 
-const entitySchemaRepository = new EntitySchemaRepository(getBaseRepository())
+applyMigrations(dbQuery)
 
-console.log('@@@entitySchemaRepository', entitySchemaRepository)
-
-const newSchema = entitySchemaRepository.createOne({
-  name: 'testSchema',
-  boolean: FieldType.BOOLEAN,
-  string: FieldType.STRING,
-  number: FieldType.NUMBER,
-  json: FieldType.JSON
-})
-
-console.log('@@@newSchema', newSchema)
-console.log('@@@entitySchemaRepository', entitySchemaRepository)
+createServer((req: IncomingMessage, res: ServerResponse) => {
+  console.log(req)
+  
+  res.writeHead(200, {'Content-Type': 'application/json'})
+  res.write(JSON.stringify({ hello: 'world' }))
+  res.end()
+}).listen(3000)
