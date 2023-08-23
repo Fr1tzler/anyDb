@@ -8,5 +8,5 @@ export type DatabaseMigrationType = {
 
 export type MigrationEntity = {
   id: number;
-  key: string;
+  tag: string;
 }

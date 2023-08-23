@@ -33,9 +33,8 @@ async function checkActiveMigrations(dbQuery: DbQueryExecutor): Promise<string[]
   const existResult = await dbQuery(
     'SELECT * FROM migrations ORDER BY ID ASC'
   ) as MigrationEntity[]
-  console.log(existResult)
   
-  return existResult.map(({ key }) => key)
+  return existResult.map(({ tag }) => tag)
 }
 
 async function registerMigration(tag: string, dbQuery: DbQueryExecutor) {
@@ -49,13 +48,13 @@ async function registerMigration(tag: string, dbQuery: DbQueryExecutor) {
 
 export async function applyMigrations(dbQuery: DbQueryExecutor) {
   const appliedMigrationTags = await checkActiveMigrations(dbQuery)
-  console.log('@@@migrationList', migrationList)
   
   for (const migration of migrationList) {
     if (appliedMigrationTags.includes(migration.tag)) {
       continue
     }
     await migration.up(dbQuery)
+    console.info(`${migration.tag} sucessfully applied`)
     await registerMigration(migration.tag, dbQuery)
   }
   console.info('Migrations applied succesfully')

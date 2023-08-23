@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .ts",
     "test": "jest --coverage",
     "postgres:start-local": "sh scripts/run-postgres.sh",
-    "postgres:migrations:create": "ts-node cli/generate-migration.ts"
+    "postgres:migrations:create": "ts-node src/database/generate-migration.ts"
   },
   "keywords": [],
   "author": "",
