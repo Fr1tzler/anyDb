@@ -1,6 +1,6 @@
-import { getBaseRepository } from '../../src/repository/base.repository'
-import { EntitySchemaRepository } from '../../src/repository/entity-schema.repository'
-import { EntityRepository } from '../../src/repository/entity.repository'
+import { getBaseRepository } from '../../src/repository/memory/base.repository'
+import { EntitySchemaRepository } from '../../src/repository/memory/entity-schema.repository'
+import { EntityRepository } from '../../src/repository/memory/entity.repository'
 import { FieldType } from '../../src/types'
 
 // just something like real-word object

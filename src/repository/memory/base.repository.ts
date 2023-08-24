@@ -1,4 +1,4 @@
-import { EntitySchemaType, EntityType, SchemaFieldType, FieldValueType } from '../types'
+import { EntitySchemaType, EntityType, SchemaFieldType, FieldValueType } from '../../types'
 
 type Indexable = {
   id: string;

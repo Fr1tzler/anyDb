@@ -2,23 +2,25 @@ import { migrationList } from './migration-list'
 import { DbQueryExecutor, MigrationEntity } from './types'
 
 async function createMigrationsTable(dbQuery: DbQueryExecutor): Promise<void> {
-  await dbQuery(`
+  await dbQuery<object>(`
     CREATE SEQUENCE migrations_id_seq;
   `)
-  await dbQuery(`
+  await dbQuery<object>(`
     CREATE TABLE migrations (
       id INTEGER NOT NULL PRIMARY KEY DEFAULT nextval('migrations_id_seq'),
       tag VARCHAR(50) NOT NULL
     );
   `)
-  await dbQuery(`
+  await dbQuery<object>(`
     ALTER SEQUENCE migrations_id_seq owned by migrations.id;
   `)
 }
 
 async function checkActiveMigrations(dbQuery: DbQueryExecutor): Promise<string[]> {
-  const migrationsExistResult = await dbQuery(`
-    SELECT FROM 
+  const migrationsExistResult = await dbQuery<{ count: number }>(`
+    SELECT
+      1 as count
+    FROM 
       pg_tables
     WHERE 
       schemaname = 'public' AND 
@@ -30,20 +32,18 @@ async function checkActiveMigrations(dbQuery: DbQueryExecutor): Promise<string[]
     console.info('Migrations table created')
     return []
   }
-  const existResult = await dbQuery(
+  const existResult = await dbQuery<MigrationEntity>(
     'SELECT * FROM migrations ORDER BY ID ASC'
-  ) as MigrationEntity[]
+  )
   
   return existResult.map(({ tag }) => tag)
 }
 
 async function registerMigration(tag: string, dbQuery: DbQueryExecutor) {
-  const res = await dbQuery(
+  await dbQuery<object>(
     'INSERT INTO migrations (tag) VALUES ($1)',
     [tag]
-  )
-  console.log(res)
-  
+  )  
 }
 
 export async function applyMigrations(dbQuery: DbQueryExecutor) {

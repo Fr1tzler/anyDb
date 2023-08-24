@@ -1,4 +1,4 @@
-import { BaseRepository, getBaseRepository } from '../../src/repository/base.repository'
+import { BaseRepository, getBaseRepository } from '../../src/repository/memory/base.repository'
 import { EntitySchemaType, EntityType, FieldType, FieldValueType, SchemaFieldType } from '../../src/types'
 
 const now = new Date().toISOString()

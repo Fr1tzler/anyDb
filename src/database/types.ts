@@ -1,4 +1,8 @@
-export type DbQueryExecutor = (query: string, params?: string[]) => Promise<unknown[]>
+import { QueryResultRow } from 'pg'
+
+export type DbQueryParameterType = (string | number | Date | DbQueryParameterType)[]
+
+export type DbQueryExecutor = <T extends QueryResultRow>(query: string, params?: DbQueryParameterType) => Promise<T[]>
 
 export type DatabaseMigrationType = {
   up(dbQuery: DbQueryExecutor): Promise<void>;

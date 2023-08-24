@@ -1,27 +1,34 @@
+import { DbQueryExecutor } from '../database/types'
 import { EntitySchema } from '../entity'
 import { EntitySchemaType, FieldType, SchemaFieldType } from '../types'
-import { randomUUID } from 'crypto'
-import { BaseRepository } from './base.repository'
 import { IListAllResponse } from '../utils/types'
 
 export interface IEntitySchemaRepository {
-  listAll(offset?: number, limit?: number): IListAllResponse<EntitySchema>;
-  getOne(entitySchemaId: string): EntitySchema | null;
-  createOne(partialSchema: Partial<EntitySchema>): EntitySchema | null;
-  updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): EntitySchema | null;
-  deleteOne(entitySchemaId: string): void;
+  listAll(offset?: number, limit?: number): Promise<IListAllResponse<EntitySchema>>;
+  getOne(entitySchemaId: string): Promise<EntitySchema | null>;
+  createOne(partialSchema: Partial<EntitySchema>): Promise<EntitySchema | null>;
+  updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): Promise<EntitySchema | null>;
+  deleteOne(entitySchemaId: string): Promise<void>;
 }
 
 export class EntitySchemaRepository implements IEntitySchemaRepository {
-  constructor (private baseRepository: BaseRepository) {}
+  constructor (private dbQuery: DbQueryExecutor) {}
+  
+  async listAll(offset: number = 0, limit: number = 20): Promise<IListAllResponse<EntitySchema>> {
+    const totalQueryResult = await this.dbQuery<{ total: string }>('SELECT COUNT(*) as "total" FROM "EntitySchema"')
+    const total = Number(totalQueryResult[0].total)
 
-  public listAll(offset = 0, limit = 100) {
-    const total = this.baseRepository.entitySchemaList.length
+    const rawResult = await this.dbQuery<EntitySchemaType>(`
+      SELECT * FROM "EntitySchema"
+      OFFSET $1 LIMIT $2
+    `, [offset, limit])
 
-    const rawResult = this.baseRepository.entitySchemaList.slice(offset, offset + limit)
-    const entitySchemaIds = rawResult.map(({ id }) => id)
-    const fields = this.getFieldListByEntitySchemaIds(entitySchemaIds)
-    const result: EntitySchema[] = rawResult.map(rawEntitySchema => this.mapFieldsToRawSchema(rawEntitySchema, fields))
+    const fields = await this.dbQuery<SchemaFieldType>(`
+      SELECT * FROM "SchemaField"
+      WHERE "entitySchemaId" = ANY($1)
+    `, [rawResult.map(({ id }) => id)])
+
+    const result: EntitySchema[] = rawResult.map(schema => this.mapFieldsToRawSchema(schema, fields))
 
     return {
       offset,
@@ -31,86 +38,75 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     }
   }
 
-  public getOne(entitySchemaId: string) {
-    const schema = this.baseRepository.entitySchemaList.find(({ id }) => id === entitySchemaId)
-    if (!schema) {
-      return null
-    }
-    const fields = this.getFieldListByEntitySchemaIds([entitySchemaId])
-    return this.mapFieldsToRawSchema(schema, fields)
-  }
+  public async getOne(entitySchemaId: string): Promise<EntitySchema | null> {
+    const [rawEntitySchema] = await this.dbQuery<EntitySchemaType>(`
+      SELECT * FROM "EntitySchema"
+      WHERE "id" = $1
+    `, [entitySchemaId])
 
-  public createOne(partialSchema: Partial<EntitySchema>) {
+    const fields = await this.dbQuery<SchemaFieldType>(`
+      SELECT * FROM "SchemaField"
+      WHERE "entitySchemaId" = $1
+    `, [entitySchemaId])
+
+    return this.mapFieldsToRawSchema(rawEntitySchema, fields)
+  }
+  
+  public async createOne(partialSchema: Partial<EntitySchema>): Promise<EntitySchema | null> {
     if (!partialSchema.name) {
       return null
     }
-    const now = new Date().toISOString()
-    const schemaId = randomUUID()
-    const schema: EntitySchemaType = {
-      id: schemaId,
-      name: partialSchema.name,
-      createdAt: now,
-      updatedAt: now,
-    }
-    this.baseRepository.entitySchemaList.push(schema)    
+    const [rawEntitySchema] = await this.dbQuery<EntitySchemaType>(`
+      INSERT INTO "EntitySchema"(name) values ($1)
+      RETURNING *
+    `, [partialSchema.name])
+
     const fieldsToCreate = Object.keys(partialSchema)
       .filter(key => {
         const fieldTypes: string[] = Object.values(FieldType)
         return fieldTypes.includes(partialSchema[key] ?? '') 
       })
       .map(key => ({ fieldName: key, type: (partialSchema[key] || '') as FieldType }))
-    this.createSchemaFields(fieldsToCreate, schemaId)
-    return this.getOne(schemaId)
+    this.createSchemaFields(fieldsToCreate, rawEntitySchema.id)
+    return this.getOne(rawEntitySchema.id)
   }
 
-  public updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): EntitySchema | null {
-    const indexToUpdate = this.baseRepository.entitySchemaList.findIndex(({ id }) => id === schemaId)
-    if (indexToUpdate === -1) {
+  public async updateOne(schemaId: string, partialSchema: Partial<EntitySchema>): Promise<EntitySchema | null> {
+    const [existingSchema] = await this.dbQuery<EntitySchemaType>('SELECT * FROM "EntitySchema" WHERE "id" = $1', [schemaId])
+    if (!existingSchema) {
       return null
     }
-    const existingFields = this.getFieldListByEntitySchemaIds([schemaId])
-    // todo check id existing field type has been changed
+    const existingFields = await this.dbQuery<SchemaFieldType>('SELECT * FROM "SchemaField" where "entitySchemaId" = $1', [schemaId])
+
     const fieldIdsToDelete = existingFields
       .filter(field => !partialSchema[field.fieldName])
       .map(({ id }) => id)
-    this.deleteFieldListByFieldIds(fieldIdsToDelete)
+    await this.deleteFieldListByFieldIds(fieldIdsToDelete)
     const fieldsToCreate = Object.keys(partialSchema)
       .filter(key => !existingFields.find(({ fieldName }) => fieldName === key))
       .filter(key => !((partialSchema[key] || '') in FieldType))
       .map(key => ({ fieldName: key, type: (partialSchema[key] || '') as FieldType }))
-    this.createSchemaFields(fieldsToCreate, schemaId)
-    this.baseRepository.entitySchemaList[indexToUpdate].updatedAt = new Date().toISOString()
+    await this.createSchemaFields(fieldsToCreate, schemaId)
+    await this.dbQuery('UPDATE "EntitySchema" set "updatedAt" = current_timestamp(0) WHERE "id" = $1', [schemaId])
     return this.getOne(schemaId)
   }
 
-  public deleteOne(entitySchemaId: string) {
-    this.baseRepository.entitySchemaList = this.baseRepository.entitySchemaList.filter(({ id }) => id !== entitySchemaId)
-    this.deleteFieldListByEntitySchemaIds([entitySchemaId])
-
-    // todo use foreign key with cascade delete for other tables
+  public async deleteOne(entitySchemaId: string): Promise<void> {
+    await this.dbQuery('DELETE FROM "EntitySchema" WHERE "id" = $1', [entitySchemaId])
   }
 
-  private createSchemaFields(fields: { fieldName: string; type: FieldType }[], entitySchemaId: string) {
-    const now = new Date().toISOString()
-    this.baseRepository.schemaFieldList.push(...fields.map(field => ({ 
-      ...field,
-      entitySchemaId,
-      id: randomUUID(), 
-      createdAt: now,
-      updatedAt: now,
-    })))
+  // todo refactor
+  private async deleteFieldListByFieldIds(fieldIds: string[]): Promise<void> {
+    await this.dbQuery('DELETE FROM "SchemaField" WHERE "id" = ANY($1)', [fieldIds])
   }
 
-  private deleteFieldListByEntitySchemaIds(entitySchemaIds: string[]) {
-    this.baseRepository.schemaFieldList = this.baseRepository.schemaFieldList.filter(({ entitySchemaId }) => !entitySchemaIds.includes(entitySchemaId))
-  }
-
-  private deleteFieldListByFieldIds(schemaFieldIds: string[]) {
-    this.baseRepository.schemaFieldList = this.baseRepository.schemaFieldList.filter(({ id }) => !schemaFieldIds.includes(id))
-  }
-
-  private getFieldListByEntitySchemaIds(entitySchemaIds: string[]): SchemaFieldType[] {
-    return this.baseRepository.schemaFieldList.filter(({ entitySchemaId }) => entitySchemaIds.includes(entitySchemaId))
+  // todo refactor
+  private async createSchemaFields(fields: { fieldName: string; type: FieldType }[], entitySchemaId: string): Promise<void> {
+    const parametersInsertionString = fields.map((_, index) => `($${2 * index + 1}, $${2 * index + 2}, '${entitySchemaId}')`).join(', ')
+    await this.dbQuery<object>(`
+      INSERT INTO "SchemaField"("fieldName", "type", "entitySchemaId") 
+      VALUES ${parametersInsertionString}
+    `, fields.flatMap(({ fieldName, type }) => [fieldName, type]))    
   }
 
   private mapFieldsToRawSchema(rawSchema: EntitySchemaType, fields: SchemaFieldType[]): EntitySchema {

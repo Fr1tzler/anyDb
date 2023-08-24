@@ -1,8 +1,8 @@
 import { randomUUID } from 'crypto'
-import { Entity } from '../entity/entity.entity'
-import { EntityType, FieldType, SchemaFieldType } from '../types'
-import { EntityFieldValueType, FieldValueType, RecordType, fieldIsBoolean, fieldIsNumber, fieldIsObject, fieldIsString } from '../types/field-value.type'
-import { IListAllResponse } from '../utils/types'
+import { Entity } from '../../entity/entity.entity'
+import { EntityType, FieldType, SchemaFieldType } from '../../types'
+import { EntityFieldValueType, FieldValueType, RecordType, fieldIsBoolean, fieldIsNumber, fieldIsObject, fieldIsString } from '../../types/field-value.type'
+import { IListAllResponse } from '../../utils/types'
 import { BaseRepository } from './base.repository'
 
 interface EntityListAllQuery {
