@@ -27,7 +27,7 @@ export const InitDbMigration: DatabaseMigrationType = {
         "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp(0),
         "fieldName" TEXT NOT NULL,
         "type" "FieldType" NOT NULL DEFAULT 'string',
-        "entitySchemaId" UUID NOT NULL REFERENCES "EntitySchema"("id")
+        "entitySchemaId" UUID NOT NULL REFERENCES "EntitySchema"("id") ON DELETE CASCADE
       )
     `)
 
@@ -36,7 +36,7 @@ export const InitDbMigration: DatabaseMigrationType = {
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp(0),
         "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp(0),
-        "entitySchemaId" UUID NOT NULL REFERENCES "EntitySchema"("id")
+        "entitySchemaId" UUID NOT NULL REFERENCES "EntitySchema"("id") ON DELETE CASCADE
       )
     `)
 
@@ -45,9 +45,9 @@ export const InitDbMigration: DatabaseMigrationType = {
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp(0),
         "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp(0),
-        "entitySchemaId" UUID NOT NULL REFERENCES "EntitySchema"("id"),
-        "schemaFieldId" UUID NOT NULL REFERENCES "SchemaField"("id"),
-        "entityId" UUID NOT NULL REFERENCES "Entity"("id"),
+        "entitySchemaId" UUID NOT NULL REFERENCES "EntitySchema"("id") ON DELETE CASCADE,
+        "schemaFieldId" UUID NOT NULL REFERENCES "SchemaField"("id") ON DELETE CASCADE,
+        "entityId" UUID NOT NULL REFERENCES "Entity"("id") ON DELETE CASCADE,
         "type" "FieldType" NOT NULL,
         "booleanValue" BOOLEAN,
         "stringValue" TEXT,
@@ -59,7 +59,7 @@ export const InitDbMigration: DatabaseMigrationType = {
 
   down: async (dbQuery: DbQueryExecutor) => {
     await dbQuery('DROP TABLE IF EXISTS "FieldValue"')
-
+    
     await dbQuery('DROP TABLE IF EXISTS "Entity"')
 
     await dbQuery('DROP TABLE IF EXISTS "SchemaField"')

@@ -14,3 +14,9 @@ export {
   fieldIsString,
   fieldIsObject,
 } from './field-value.type' 
+
+export {
+  HttpMethod,
+  Controller,
+  ControllerGroup,
+} from './controller.type'

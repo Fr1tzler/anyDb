@@ -48,7 +48,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
       SELECT * FROM "SchemaField"
       WHERE "entitySchemaId" = $1
     `, [entitySchemaId])
-
+ 
     return this.mapFieldsToRawSchema(rawEntitySchema, fields)
   }
   
@@ -106,7 +106,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     await this.dbQuery<object>(`
       INSERT INTO "SchemaField"("fieldName", "type", "entitySchemaId") 
       VALUES ${parametersInsertionString}
-    `, fields.flatMap(({ fieldName, type }) => [fieldName, type]))    
+    `, fields.flatMap(({ fieldName, type }) => [fieldName, type]))
   }
 
   private mapFieldsToRawSchema(rawSchema: EntitySchemaType, fields: SchemaFieldType[]): EntitySchema {
