@@ -13,10 +13,6 @@ export {
   fieldIsNumber,
   fieldIsString,
   fieldIsObject,
-} from './field-value.type' 
+} from './field-value.type'
 
-export {
-  HttpMethod,
-  Controller,
-  ControllerGroup,
-} from './controller.type'
+export { HttpMethod, Controller, ControllerGroup } from './controller.type'

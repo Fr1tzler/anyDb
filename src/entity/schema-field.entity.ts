@@ -1,3 +1,3 @@
 import { SchemaFieldType } from '../types'
 
-export type SchemaField = SchemaFieldType; 
+export type SchemaField = SchemaFieldType;

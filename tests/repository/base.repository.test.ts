@@ -1,5 +1,14 @@
-import { BaseRepository, getBaseRepository } from '../../src/repository/memory/base.repository'
-import { EntitySchemaType, EntityType, FieldType, FieldValueType, SchemaFieldType } from '../../src/types'
+import {
+  BaseRepository,
+  getBaseRepository,
+} from '../../src/repository/memory/base.repository'
+import {
+  EntitySchemaType,
+  EntityType,
+  FieldType,
+  FieldValueType,
+  SchemaFieldType,
+} from '../../src/types'
 
 const now = new Date().toISOString()
 const dateParams = {
@@ -9,7 +18,7 @@ const dateParams = {
 const entitySchema: EntitySchemaType = {
   id: 'es1',
   name: 'entitySchema',
-  ...dateParams
+  ...dateParams,
 }
 const entity: EntityType = {
   id: 'e1',
@@ -21,7 +30,7 @@ const schemaField: SchemaFieldType = {
   fieldName: 'booleanValue',
   type: FieldType.BOOLEAN,
   entitySchemaId: entitySchema.id,
-  ...dateParams
+  ...dateParams,
 }
 const fieldValue: FieldValueType = {
   id: 'fv1',
@@ -55,7 +64,7 @@ describe('Base repository', () => {
     expect(repository.entityList).toHaveLength(0)
     expect(repository.entitySchemaList).toHaveLength(0)
     expect(repository.fieldValueList).toHaveLength(0)
-    expect(repository.schemaFieldList).toHaveLength(0)  
+    expect(repository.schemaFieldList).toHaveLength(0)
   })
 
   test('Entity creation successful', () => {
@@ -68,7 +77,7 @@ describe('Base repository', () => {
 
   test('Schema deletion successful', () => {
     fillBaseRepository(repository)
-    repository.entitySchemaList = []   
+    repository.entitySchemaList = []
     expect(repository.entitySchemaList).toHaveLength(0)
     expect(repository.entityList).toHaveLength(0)
     expect(repository.schemaFieldList).toHaveLength(0)
@@ -78,7 +87,7 @@ describe('Base repository', () => {
 
   test('Entity deletion successful', () => {
     fillBaseRepository(repository)
-    repository.entityList = []   
+    repository.entityList = []
     expect(repository.entitySchemaList).toHaveLength(1)
     expect(repository.entityList).toHaveLength(0)
     expect(repository.schemaFieldList).toHaveLength(1)
@@ -88,7 +97,7 @@ describe('Base repository', () => {
 
   test('Field deletion successful', () => {
     fillBaseRepository(repository)
-    repository.schemaFieldList = []   
+    repository.schemaFieldList = []
     expect(repository.entitySchemaList).toHaveLength(1)
     expect(repository.entityList).toHaveLength(1)
     expect(repository.schemaFieldList).toHaveLength(0)
@@ -98,7 +107,7 @@ describe('Base repository', () => {
 
   test('Field value deletion successful', () => {
     fillBaseRepository(repository)
-    repository.fieldValueList = []   
+    repository.fieldValueList = []
     expect(repository.entitySchemaList).toHaveLength(1)
     expect(repository.entityList).toHaveLength(1)
     expect(repository.schemaFieldList).toHaveLength(1)

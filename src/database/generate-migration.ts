@@ -2,8 +2,6 @@ import { writeFile, readFile } from 'fs/promises'
 import path from 'path'
 import { toUpperCamelCase } from '../utils/string-transformer'
 
-// todo add migration generate script
-
 // todo pass timestamp to migration name
 const getMigrationSkeleton = (migrationName: string) => `
 import { DatabaseMigrationType, DbQueryExecutor } from '../types'
@@ -21,17 +19,26 @@ export const ${migrationName}: DatabaseMigrationType = {
 }
 `
 
-async function insertMigrationToMigrationListFile(tag: string, migrationName: string) {
-  const migrationsListFileContents = (await readFile('./src/database/migration-list.ts')).toString()
+async function insertMigrationToMigrationListFile(
+  tag: string,
+  migrationName: string,
+) {
+  const migrationsListFileContents = (
+    await readFile('./src/database/migration-list.ts')
+  ).toString()
   const splitLines = migrationsListFileContents.split('\n')
-  const fileImportIndex = splitLines.findIndex(el => el.includes('// INSERT_POSITION'))
+  const fileImportIndex = splitLines.findIndex((el) =>
+    el.includes('// INSERT_POSITION'),
+  )
   const importString = `import { ${migrationName} } from './migrations/${tag}'`
   splitLines.splice(fileImportIndex, 0, importString)
   const migrationListString = `  ${migrationName},`
-  const migrationListIndex = splitLines.findIndex(el => el.includes('  // MIGRATION_LIST_POSITION'))
+  const migrationListIndex = splitLines.findIndex((el) =>
+    el.includes('  // MIGRATION_LIST_POSITION'),
+  )
   splitLines.splice(migrationListIndex, 0, migrationListString)
   await writeFile('./src/database/migration-list.ts', splitLines.join('\n'))
-} 
+}
 
 (async () => {
   const migrationName = process.argv[2]

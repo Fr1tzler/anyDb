@@ -19,7 +19,7 @@ describe('Entity schema repository', () => {
   test('Skip entity w/o name creation', () => {
     const nullishEntity = entitySchemaRepository.createOne({
       ...basicEntitySchema,
-      name: undefined
+      name: undefined,
     })
 
     expect(nullishEntity).toBeNull()
@@ -27,7 +27,7 @@ describe('Entity schema repository', () => {
 
   test('Entity create', () => {
     const createdEntity = entitySchemaRepository.createOne(basicEntitySchema)
-    
+
     expect(createdEntity).toBeDefined()
     expect(baseRepository.entitySchemaList).toHaveLength(1)
     expect(baseRepository.schemaFieldList).toHaveLength(5)
@@ -43,7 +43,7 @@ describe('Entity schema repository', () => {
 
   test('Entity list', () => {
     const schemaListObject = entitySchemaRepository.listAll()
-    
+
     expect(schemaListObject.result).toHaveLength(1)
     expect(schemaListObject.total).toBe(1)
   })
@@ -57,7 +57,7 @@ describe('Entity schema repository', () => {
   })
 
   test('Entity update', () => {
-    const schemaListObject = entitySchemaRepository.listAll()   
+    const schemaListObject = entitySchemaRepository.listAll()
     const { id } = schemaListObject.result[0]
 
     const updateResult = entitySchemaRepository.updateOne(id, {
@@ -69,7 +69,7 @@ describe('Entity schema repository', () => {
   })
 
   test('Entity delete', () => {
-    const schemaListObject = entitySchemaRepository.listAll()   
+    const schemaListObject = entitySchemaRepository.listAll()
     const { id } = schemaListObject.result[0]
 
     entitySchemaRepository.deleteOne(id)

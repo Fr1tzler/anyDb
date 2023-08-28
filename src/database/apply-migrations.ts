@@ -16,7 +16,9 @@ async function createMigrationsTable(dbQuery: DbQueryExecutor): Promise<void> {
   `)
 }
 
-async function checkActiveMigrations(dbQuery: DbQueryExecutor): Promise<string[]> {
+async function checkActiveMigrations(
+  dbQuery: DbQueryExecutor,
+): Promise<string[]> {
   const migrationsExistResult = await dbQuery<{ count: number }>(`
     SELECT
       1 as count
@@ -33,22 +35,19 @@ async function checkActiveMigrations(dbQuery: DbQueryExecutor): Promise<string[]
     return []
   }
   const existResult = await dbQuery<MigrationEntity>(
-    'SELECT * FROM migrations ORDER BY ID ASC'
+    'SELECT * FROM migrations ORDER BY ID ASC',
   )
-  
+
   return existResult.map(({ tag }) => tag)
 }
 
 async function registerMigration(tag: string, dbQuery: DbQueryExecutor) {
-  await dbQuery<object>(
-    'INSERT INTO migrations (tag) VALUES ($1)',
-    [tag]
-  )  
+  await dbQuery<object>('INSERT INTO migrations (tag) VALUES ($1)', [tag])
 }
 
 export async function applyMigrations(dbQuery: DbQueryExecutor) {
   const appliedMigrationTags = await checkActiveMigrations(dbQuery)
-  
+
   for (const migration of migrationList) {
     if (appliedMigrationTags.includes(migration.tag)) {
       continue

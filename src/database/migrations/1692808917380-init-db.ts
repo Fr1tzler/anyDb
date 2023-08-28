@@ -1,9 +1,8 @@
-
 import { DatabaseMigrationType, DbQueryExecutor } from '../types'
 
 export const InitDbMigration: DatabaseMigrationType = {
   tag: 'InitDbMigration',
-  
+
   up: async (dbQuery: DbQueryExecutor) => {
     await dbQuery('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
 
@@ -59,15 +58,15 @@ export const InitDbMigration: DatabaseMigrationType = {
 
   down: async (dbQuery: DbQueryExecutor) => {
     await dbQuery('DROP TABLE IF EXISTS "FieldValue"')
-    
+
     await dbQuery('DROP TABLE IF EXISTS "Entity"')
 
     await dbQuery('DROP TABLE IF EXISTS "SchemaField"')
 
     await dbQuery('DROP TABLE IF EXISTS "EntitySchema"')
-    
+
     await dbQuery('DROP TYPE IF EXISTS "FieldType"')
 
-    await dbQuery('DROP EXTENSION IF EXISTS "uuid-ossp"')    
-  }
+    await dbQuery('DROP EXTENSION IF EXISTS "uuid-ossp"')
+  },
 }

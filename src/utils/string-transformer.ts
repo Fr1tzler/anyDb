@@ -13,6 +13,7 @@ export function snakeOrKebabToCamelCase(input: string) {
     }
   }
   return chars.join('').replace(/-|_/gm, '')
-} 
+}
 
-export const toUpperCamelCase = (input: string) => capitalise(snakeOrKebabToCamelCase(input)) 
+export const toUpperCamelCase = (input: string) =>
+  capitalise(snakeOrKebabToCamelCase(input))

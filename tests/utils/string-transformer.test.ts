@@ -1,4 +1,7 @@
-import { capitalise, snakeOrKebabToCamelCase } from '../../src/utils/string-transformer'
+import {
+  capitalise,
+  snakeOrKebabToCamelCase,
+} from '../../src/utils/string-transformer'
 
 describe('String transformer', () => {
   test('Capitalise string', () => {
@@ -10,7 +13,11 @@ describe('String transformer', () => {
   })
 
   test('Snake or kebab to camel case string', () => {
-    expect(snakeOrKebabToCamelCase('snake_case_string')).toBe('snakeCaseString')
-    expect(snakeOrKebabToCamelCase('kebab-case-string')).toBe('kebabCaseString')
+    expect(snakeOrKebabToCamelCase('snake_case_string')).toBe(
+      'snakeCaseString',
+    )
+    expect(snakeOrKebabToCamelCase('kebab-case-string')).toBe(
+      'kebabCaseString',
+    )
   })
 })

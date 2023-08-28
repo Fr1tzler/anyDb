@@ -10,10 +10,10 @@ export enum HttpMethod {
 export type Controller = {
   path: string;
   method: HttpMethod;
-  executor: (req: IncomingMessage, res: ServerResponse) => unknown; 
-}
+  executor: (req: IncomingMessage, res: ServerResponse) => unknown;
+};
 
 export type ControllerGroup = {
   controllers: Controller[];
   basePath: string;
-}
+};

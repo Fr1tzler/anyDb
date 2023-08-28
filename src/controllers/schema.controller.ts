@@ -16,16 +16,19 @@ export const schemaControllerGroup: ControllerGroup = {
       path: '/',
       method: HttpMethod.GET,
       executor: async () => {
-        return entitySchemaRepository.listAll()         
-      }
+        return entitySchemaRepository.listAll()
+      },
     },
     {
       path: '/:schemaId',
       method: HttpMethod.GET,
       executor: async (req) => {
-        const { schemaId } = getPathParams<{ schemaId: string }>(req.url ?? '', '/schema/:schemaId')        
+        const { schemaId } = getPathParams<{ schemaId: string }>(
+          req.url ?? '',
+          '/schema/:schemaId',
+        )
         return entitySchemaRepository.getOne(schemaId)
-      }
+      },
     },
     {
       path: '/',
@@ -33,25 +36,30 @@ export const schemaControllerGroup: ControllerGroup = {
       executor: async (req: IncomingMessage) => {
         const rawSchema = await extractBody<Partial<EntitySchema>>(req)
         return await entitySchemaRepository.createOne(rawSchema)
-      }
+      },
     },
     {
       path: '/:schemaId',
       method: HttpMethod.PUT,
       executor: async (req) => {
-        const { schemaId } = getPathParams<{ schemaId: string }>(req.url ?? '', '/schema/:schemaId')
+        const { schemaId } = getPathParams<{ schemaId: string }>(
+          req.url ?? '',
+          '/schema/:schemaId',
+        )
         const rawSchema = await extractBody<Partial<EntitySchema>>(req)
         return entitySchemaRepository.updateOne(schemaId, rawSchema)
-      }
+      },
     },
     {
       path: '/:schemaId',
       method: HttpMethod.DELETE,
       executor: async (req) => {
-        const { schemaId } = getPathParams<{ schemaId: string }>(req.url ?? '', '/schema/:schemaId')
+        const { schemaId } = getPathParams<{ schemaId: string }>(
+          req.url ?? '',
+          '/schema/:schemaId',
+        )
         return entitySchemaRepository.deleteOne(schemaId)
-      }
+      },
     },
-
   ],
 }

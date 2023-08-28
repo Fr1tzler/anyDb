@@ -9,6 +9,6 @@ export enum FieldType {
 
 export type SchemaFieldType = BaseType & {
   fieldName: string;
-  type: FieldType,
+  type: FieldType;
   entitySchemaId: string;
-}
+};

@@ -7,7 +7,7 @@
     "start:dev": "tsc --outDir ./.dist && node ./.dist/src/index.js",
     "build": "tsc --outDir ./.dist",
     "start": "node ./.dist/index.js",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --fix",
     "test": "jest --coverage",
     "postgres:start-local": "sh scripts/run-postgres.sh",
     "postgres:migrations:create": "ts-node src/database/generate-migration.ts"

@@ -1,8 +1,13 @@
-import { EntitySchemaType, EntityType, SchemaFieldType, FieldValueType } from '../../types'
+import {
+  EntitySchemaType,
+  EntityType,
+  SchemaFieldType,
+  FieldValueType,
+} from '../../types'
 
 type Indexable = {
   id: string;
-}
+};
 
 export class BaseRepository {
   private _entitySchemaList: EntitySchemaType[]
@@ -10,7 +15,7 @@ export class BaseRepository {
   private _entityList: EntityType[]
   private _fieldValueList: FieldValueType[]
 
-  constructor () {
+  constructor() {
     this._entitySchemaList = []
     this._schemaFieldList = []
     this._entityList = []
@@ -36,23 +41,37 @@ export class BaseRepository {
   //#region SETTERS
 
   public set entitySchemaList(newEntitySchemaList: EntitySchemaType[]) {
-    const schemaIdDiff = this.getEntityIdDiff(this._entitySchemaList, newEntitySchemaList)
-    
+    const schemaIdDiff = this.getEntityIdDiff(
+      this._entitySchemaList,
+      newEntitySchemaList,
+    )
+
     this._entitySchemaList = newEntitySchemaList
-    this.schemaFieldList = this._schemaFieldList.filter(({ entitySchemaId }) => !schemaIdDiff.includes(entitySchemaId))
-    this.entityList = this._entityList.filter(({schemaId}) => !schemaIdDiff.includes(schemaId))
+    this.schemaFieldList = this._schemaFieldList.filter(
+      ({ entitySchemaId }) => !schemaIdDiff.includes(entitySchemaId),
+    )
+    this.entityList = this._entityList.filter(
+      ({ schemaId }) => !schemaIdDiff.includes(schemaId),
+    )
   }
 
   public set schemaFieldList(newSchemaFieldList: SchemaFieldType[]) {
-    const fieldIdDiff = this.getEntityIdDiff(this._schemaFieldList, newSchemaFieldList)
+    const fieldIdDiff = this.getEntityIdDiff(
+      this._schemaFieldList,
+      newSchemaFieldList,
+    )
     this._schemaFieldList = newSchemaFieldList
-    this.fieldValueList = this._fieldValueList.filter(({schemaFieldId}) => !fieldIdDiff.includes(schemaFieldId))
+    this.fieldValueList = this._fieldValueList.filter(
+      ({ schemaFieldId }) => !fieldIdDiff.includes(schemaFieldId),
+    )
   }
 
   public set entityList(newEntityList: EntityType[]) {
     const entityIdDiff = this.getEntityIdDiff(this._entityList, newEntityList)
     this._entityList = newEntityList
-    this.fieldValueList = this._fieldValueList.filter(({ entityId }) => !entityIdDiff.includes(entityId))
+    this.fieldValueList = this._fieldValueList.filter(
+      ({ entityId }) => !entityIdDiff.includes(entityId),
+    )
   }
 
   public set fieldValueList(newFieldValueList: FieldValueType[]) {
@@ -64,16 +83,16 @@ export class BaseRepository {
   private getEntityIdDiff(first: Indexable[], second: Indexable[]) {
     return this.getArrayDiff(
       first.map(({ id }) => id),
-      second.map(({ id }) => id)
+      second.map(({ id }) => id),
     )
   }
 
   private getArrayDiff(first: string[], second: string[]): string[] {
-    return first.filter(el => !second.includes(el))
+    return first.filter((el) => !second.includes(el))
   }
 }
 
-let baseRepository: BaseRepository | null = null 
+let baseRepository: BaseRepository | null = null
 
 export const getBaseRepository = () => {
   if (!baseRepository) {

@@ -1,4 +1,11 @@
-import { FieldType, FieldValueType, fieldIsBoolean, fieldIsNumber, fieldIsObject, fieldIsString } from '../../src/types'
+import {
+  FieldType,
+  FieldValueType,
+  fieldIsBoolean,
+  fieldIsNumber,
+  fieldIsObject,
+  fieldIsString,
+} from '../../src/types'
 
 const now = new Date().toISOString()
 
@@ -10,7 +17,7 @@ const baseValueType = {
   updatedAt: now,
   schemaId: nilUuid,
   schemaFieldId: nilUuid,
-  entityId: nilUuid
+  entityId: nilUuid,
 }
 
 const booleanValueType: FieldValueType = {
@@ -22,21 +29,21 @@ const booleanValueType: FieldValueType = {
 const stringValueType: FieldValueType = {
   ...baseValueType,
   type: FieldType.STRING,
-  stringValue: 'testString'
+  stringValue: 'testString',
 }
 
 const numberValueType: FieldValueType = {
   ...baseValueType,
   type: FieldType.NUMBER,
-  numberValue: 10
+  numberValue: 10,
 }
 
 const objectValueType: FieldValueType = {
   ...baseValueType,
   type: FieldType.JSON,
   objectValue: {
-    test: 'test'
-  }
+    test: 'test',
+  },
 }
 
 describe('Type guards', () => {

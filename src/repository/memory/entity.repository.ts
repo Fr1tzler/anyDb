@@ -1,7 +1,15 @@
 import { randomUUID } from 'crypto'
 import { Entity } from '../../entity/entity.entity'
 import { EntityType, FieldType, SchemaFieldType } from '../../types'
-import { EntityFieldValueType, FieldValueType, RecordType, fieldIsBoolean, fieldIsNumber, fieldIsObject, fieldIsString } from '../../types/field-value.type'
+import {
+  EntityFieldValueType,
+  FieldValueType,
+  RecordType,
+  fieldIsBoolean,
+  fieldIsNumber,
+  fieldIsObject,
+  fieldIsString,
+} from '../../types/field-value.type'
 import { IListAllResponse } from '../../utils/types'
 import { BaseRepository } from './base.repository'
 
@@ -11,7 +19,7 @@ interface EntityListAllQuery {
   where: {
     field: string;
     value: EntityFieldValueType;
-  }
+  };
 }
 
 interface IOtherFields {
@@ -25,22 +33,26 @@ interface IOtherFields {
 
 export interface IEntityRepository {
   createOne(partialEntity: Partial<Entity>): Entity | null;
-  listAll(offset?: number, limit?: number, query?: EntityListAllQuery): IListAllResponse<Entity>;
+  listAll(
+    offset?: number,
+    limit?: number,
+    query?: EntityListAllQuery,
+  ): IListAllResponse<Entity>;
   getOne(id: string): Entity | null;
   updateOne(id: string, partialEntity: Partial<Entity>): Entity | null;
   deleteOne(id: string): void;
 }
 
 export class EntityRepository implements IEntityRepository {
-  constructor (private baseRepository: BaseRepository) {}
+  constructor(private baseRepository: BaseRepository) {}
 
   // todo refactor
   public createOne(partialEntity: Partial<Entity>): Entity | null {
-    if (!partialEntity.schemaId) {      
+    if (!partialEntity.schemaId) {
       return null
     }
     const fields = this.getFieldsBySchemaIds([partialEntity.schemaId])
-    
+
     const entityFieldsToCreate: FieldValueType[] = []
 
     const now = new Date().toISOString()
@@ -63,30 +75,52 @@ export class EntityRepository implements IEntityRepository {
         updatedAt: now,
         schemaId: partialEntity.schemaId,
         schemaFieldId: field.id,
-        entityId: entity.id
+        entityId: entity.id,
       }
-      const fieldValueObject = this.getFieldValueFromObjectField(field, value, otherFields)
+      const fieldValueObject = this.getFieldValueFromObjectField(
+        field,
+        value,
+        otherFields,
+      )
       if (fieldValueObject) {
         entityFieldsToCreate.push(fieldValueObject)
       }
     }
-    this.baseRepository.entityList = [...this.baseRepository.entityList, entity]
-    this.baseRepository.fieldValueList = [...this.baseRepository.fieldValueList, ...entityFieldsToCreate]
+    this.baseRepository.entityList = [
+      ...this.baseRepository.entityList,
+      entity,
+    ]
+    this.baseRepository.fieldValueList = [
+      ...this.baseRepository.fieldValueList,
+      ...entityFieldsToCreate,
+    ]
     return this.getOne(entity.id)
   }
 
   // todo implement query
-  public listAll(offset: number = 0, limit: number = 20): IListAllResponse<Entity> {
+  public listAll(
+    offset: number = 0,
+    limit: number = 20,
+  ): IListAllResponse<Entity> {
     const total = this.baseRepository.entityList.length
-    const rawResult = this.baseRepository.entityList.slice(offset, offset + limit)
-    const uniqueSchemaIds = [...new Set(rawResult.map(({ schemaId }) => schemaId))]
+    const rawResult = this.baseRepository.entityList.slice(
+      offset,
+      offset + limit,
+    )
+    const uniqueSchemaIds = [
+      ...new Set(rawResult.map(({ schemaId }) => schemaId)),
+    ]
     const entityIds = rawResult.map(({ id }) => id)
     const allFields = this.getFieldsBySchemaIds(uniqueSchemaIds)
     const allFieldValues = this.getFieldValuesByEntityIds(entityIds)
 
-    const result: Entity[] = rawResult.map(entityBase => {
-      const fields = allFields.filter(({ entitySchemaId }) => entitySchemaId === entityBase.schemaId)
-      const fieldValues = allFieldValues.filter(({ entityId }) => entityId === entityBase.id)
+    const result: Entity[] = rawResult.map((entityBase) => {
+      const fields = allFields.filter(
+        ({ entitySchemaId }) => entitySchemaId === entityBase.schemaId,
+      )
+      const fieldValues = allFieldValues.filter(
+        ({ entityId }) => entityId === entityBase.id,
+      )
       return this.mapFieldsToEntity(entityBase, fields, fieldValues)
     })
 
@@ -94,12 +128,14 @@ export class EntityRepository implements IEntityRepository {
       offset,
       limit,
       total,
-      result
+      result,
     }
   }
-  
-  public getOne(entityId: string): Entity | null {    
-    const entityBase = this.baseRepository.entityList.find(({ id }) => id === entityId)
+
+  public getOne(entityId: string): Entity | null {
+    const entityBase = this.baseRepository.entityList.find(
+      ({ id }) => id === entityId,
+    )
     if (!entityBase) {
       return null
     }
@@ -107,9 +143,14 @@ export class EntityRepository implements IEntityRepository {
     const fields = this.getFieldsBySchemaIds([entityBase.schemaId])
     return this.mapFieldsToEntity(entityBase, fields, fieldValues)
   }
-  
-  public updateOne(entityId: string, partialEntity: Partial<Entity>): Entity | null {
-    const entityToUpdate = this.baseRepository.entityList.find(({ id }) => id === entityId)
+
+  public updateOne(
+    entityId: string,
+    partialEntity: Partial<Entity>,
+  ): Entity | null {
+    const entityToUpdate = this.baseRepository.entityList.find(
+      ({ id }) => id === entityId,
+    )
     if (!entityToUpdate) {
       return null
     }
@@ -132,72 +173,103 @@ export class EntityRepository implements IEntityRepository {
         schemaFieldId: field.id,
         entityId,
       }
-      const fieldValueToCreate = this.getFieldValueFromObjectField(field, value, otherFields)
+      const fieldValueToCreate = this.getFieldValueFromObjectField(
+        field,
+        value,
+        otherFields,
+      )
       if (fieldValueToCreate) {
         fieldValuesToCreate.push(fieldValueToCreate)
       }
     }
 
-    this.baseRepository.fieldValueList = this.baseRepository.fieldValueList.filter(fieldValue => !(fieldValue.entityId === entityId && fieldValueFieldIdsToDelete.includes(fieldValue.schemaFieldId))) 
-    this.baseRepository.fieldValueList = [...this.baseRepository.fieldValueList, ...fieldValuesToCreate]
+    this.baseRepository.fieldValueList =
+      this.baseRepository.fieldValueList.filter(
+        (fieldValue) =>
+          !(
+            fieldValue.entityId === entityId &&
+            fieldValueFieldIdsToDelete.includes(fieldValue.schemaFieldId)
+          ),
+      )
+    this.baseRepository.fieldValueList = [
+      ...this.baseRepository.fieldValueList,
+      ...fieldValuesToCreate,
+    ]
 
     return this.getOne(entityId)
   }
 
   public deleteOne(entityId: string): void {
-    this.baseRepository.entityList = this.baseRepository.entityList.filter(({ id }) => id !== entityId)
+    this.baseRepository.entityList = this.baseRepository.entityList.filter(
+      ({ id }) => id !== entityId,
+    )
   }
 
-  private mapFieldsToEntity(entityBase: EntityType, fields: SchemaFieldType[], fieldValues: FieldValueType[]): Entity {
+  private mapFieldsToEntity(
+    entityBase: EntityType,
+    fields: SchemaFieldType[],
+    fieldValues: FieldValueType[],
+  ): Entity {
     const result: Entity = entityBase
     for (const field of fields) {
-      const fieldValue = fieldValues.find(value => value.schemaFieldId === field.id) ?? null
+      const fieldValue =
+        fieldValues.find((value) => value.schemaFieldId === field.id) ?? null
       result[field.fieldName] = this.getValueFromFieldValue(fieldValue)
     }
     return result
   }
 
   private getFieldsBySchemaIds(schemaIds: string[]) {
-    return this.baseRepository.schemaFieldList.filter(({ entitySchemaId }) => schemaIds.includes(entitySchemaId))
+    return this.baseRepository.schemaFieldList.filter(({ entitySchemaId }) =>
+      schemaIds.includes(entitySchemaId),
+    )
   }
 
   private getFieldValuesByEntityIds(entityIds: string[]) {
-    return this.baseRepository.fieldValueList.filter(({ entityId }) => entityIds.includes(entityId))
+    return this.baseRepository.fieldValueList.filter(({ entityId }) =>
+      entityIds.includes(entityId),
+    )
   }
 
-  private getFieldValueFromObjectField(field: SchemaFieldType, value: EntityFieldValueType, otherFields: IOtherFields): FieldValueType | null {
-    if (field.type === FieldType.BOOLEAN) {        
+  private getFieldValueFromObjectField(
+    field: SchemaFieldType,
+    value: EntityFieldValueType,
+    otherFields: IOtherFields,
+  ): FieldValueType | null {
+    if (field.type === FieldType.BOOLEAN) {
       return {
         booleanValue: Boolean(value),
         ...otherFields,
-        type: field.type
+        type: field.type,
       }
     }
     if (field.type === FieldType.NUMBER) {
       return {
         numberValue: Number(value),
         ...otherFields,
-        type: field.type
+        type: field.type,
       }
     }
     if (field.type === FieldType.STRING) {
       return {
         stringValue: String(value),
         ...otherFields,
-        type: field.type
+        type: field.type,
       }
     }
     if (field.type === FieldType.JSON) {
       return {
         objectValue: value as RecordType,
         ...otherFields,
-        type: field.type
+        type: field.type,
       }
     }
     return null
   }
 
-  private getValueFromFieldValue(input: FieldValueType | null): EntityFieldValueType {
+  private getValueFromFieldValue(
+    input: FieldValueType | null,
+  ): EntityFieldValueType {
     if (!input) {
       return null
     }

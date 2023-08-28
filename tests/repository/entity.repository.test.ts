@@ -23,20 +23,18 @@ const basicEntity = {
   locationInfo: {
     country: 'England',
     city: 'London',
-  }
+  },
 }
-
-
 
 describe('Entity repository', () => {
   const baseRepository = getBaseRepository()
   const entitySchemaRepository = new EntitySchemaRepository(baseRepository)
   const schema = entitySchemaRepository.createOne(basicEntitySchema)
   const entityRepository = new EntityRepository(baseRepository)
-  
+
   test('Skip entity w/o schemaId creation', () => {
     const nullishEntity = entityRepository.createOne(basicEntity)
-  
+
     expect(nullishEntity).toBeNull()
   })
 
@@ -52,8 +50,12 @@ describe('Entity repository', () => {
     expect(createdEntity?.balance).toBe(10)
     expect(createdEntity?.currency).toBeUndefined()
     expect(createdEntity?.isAdmin).toBe(false)
-    expect((createdEntity?.locationInfo as Record<string, unknown>)?.country).toBe('England')
-    expect((createdEntity?.locationInfo as Record<string, unknown>)?.city).toBe('London')
+    expect(
+      (createdEntity?.locationInfo as Record<string, unknown>)?.country,
+    ).toBe('England')
+    expect((createdEntity?.locationInfo as Record<string, unknown>)?.city).toBe(
+      'London',
+    )
   })
 
   test('Entity not found', () => {
@@ -71,7 +73,7 @@ describe('Entity repository', () => {
 
   test('Skip on not existing existing entity update', () => {
     const updateResult = entityRepository.updateOne('', {
-      username: 'Jane Doe'
+      username: 'Jane Doe',
     })
 
     expect(updateResult).toBe(null)
@@ -81,8 +83,8 @@ describe('Entity repository', () => {
     const entityListObject = entityRepository.listAll()
     const { id } = entityListObject.result[0]
 
-    const updatedEntity = entityRepository.updateOne(id, { 
-      username: 'Jane Doe'
+    const updatedEntity = entityRepository.updateOne(id, {
+      username: 'Jane Doe',
     })
 
     expect(updatedEntity).toBeDefined()
@@ -90,7 +92,7 @@ describe('Entity repository', () => {
   })
 
   test('Entity delete', () => {
-    const entityListObject = entityRepository.listAll()   
+    const entityListObject = entityRepository.listAll()
     const { id } = entityListObject.result[0]
 
     entityRepository.deleteOne(id)
