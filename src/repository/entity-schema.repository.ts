@@ -11,7 +11,7 @@ export interface IEntitySchemaRepository {
   getOne(entitySchemaId: string): Promise<EntitySchema | null>;
   createOne(partialSchema: Partial<EntitySchema>): Promise<EntitySchema | null>;
   updateOne(
-    schemaId: string,
+    entitySchemaId: string,
     partialSchema: Partial<EntitySchema>,
   ): Promise<EntitySchema | null>;
   deleteOne(entitySchemaId: string): Promise<void>;
@@ -105,19 +105,19 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
   }
 
   public async updateOne(
-    schemaId: string,
+    entitySchemaId: string,
     partialSchema: Partial<EntitySchema>,
   ): Promise<EntitySchema | null> {
     const [existingSchema] = await this.dbQuery<EntitySchemaType>(
       'SELECT * FROM "EntitySchema" WHERE "id" = $1',
-      [schemaId],
+      [entitySchemaId],
     )
     if (!existingSchema) {
       return null
     }
     const existingFields = await this.dbQuery<SchemaFieldType>(
       'SELECT * FROM "SchemaField" where "entitySchemaId" = $1',
-      [schemaId],
+      [entitySchemaId],
     )
 
     const fieldIdsToDelete = existingFields
@@ -133,12 +133,12 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
         fieldName: key,
         type: (partialSchema[key] || '') as FieldType,
       }))
-    await this.createSchemaFields(fieldsToCreate, schemaId)
+    await this.createSchemaFields(fieldsToCreate, entitySchemaId)
     await this.dbQuery(
       'UPDATE "EntitySchema" set "updatedAt" = current_timestamp(0) WHERE "id" = $1',
-      [schemaId],
+      [entitySchemaId],
     )
-    return this.getOne(schemaId)
+    return this.getOne(entitySchemaId)
   }
 
   public async deleteOne(entitySchemaId: string): Promise<void> {

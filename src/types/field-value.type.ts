@@ -2,7 +2,7 @@ import { BaseType } from './basetype.type'
 import { FieldType } from './schema-field.type'
 
 type FieldValueBase = BaseType & {
-  schemaId: string;
+  entitySchemaId: string;
   schemaFieldId: string;
   entityId: string;
 };

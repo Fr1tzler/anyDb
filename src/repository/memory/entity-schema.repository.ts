@@ -9,7 +9,7 @@ export interface IEntitySchemaRepository {
   getOne(entitySchemaId: string): EntitySchema | null;
   createOne(partialSchema: Partial<EntitySchema>): EntitySchema | null;
   updateOne(
-    schemaId: string,
+    entitySchemaId: string,
     partialSchema: Partial<EntitySchema>,
   ): EntitySchema | null;
   deleteOne(entitySchemaId: string): void;
@@ -55,9 +55,9 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
       return null
     }
     const now = new Date().toISOString()
-    const schemaId = randomUUID()
+    const entitySchemaId = randomUUID()
     const schema: EntitySchemaType = {
-      id: schemaId,
+      id: entitySchemaId,
       name: partialSchema.name,
       createdAt: now,
       updatedAt: now,
@@ -72,21 +72,21 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
         fieldName: key,
         type: (partialSchema[key] || '') as FieldType,
       }))
-    this.createSchemaFields(fieldsToCreate, schemaId)
-    return this.getOne(schemaId)
+    this.createSchemaFields(fieldsToCreate, entitySchemaId)
+    return this.getOne(entitySchemaId)
   }
 
   public updateOne(
-    schemaId: string,
+    entitySchemaId: string,
     partialSchema: Partial<EntitySchema>,
   ): EntitySchema | null {
     const indexToUpdate = this.baseRepository.entitySchemaList.findIndex(
-      ({ id }) => id === schemaId,
+      ({ id }) => id === entitySchemaId,
     )
     if (indexToUpdate === -1) {
       return null
     }
-    const existingFields = this.getFieldListByEntitySchemaIds([schemaId])
+    const existingFields = this.getFieldListByEntitySchemaIds([entitySchemaId])
     // todo check id existing field type has been changed
     const fieldIdsToDelete = existingFields
       .filter((field) => !partialSchema[field.fieldName])
@@ -101,10 +101,10 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
         fieldName: key,
         type: (partialSchema[key] || '') as FieldType,
       }))
-    this.createSchemaFields(fieldsToCreate, schemaId)
+    this.createSchemaFields(fieldsToCreate, entitySchemaId)
     this.baseRepository.entitySchemaList[indexToUpdate].updatedAt =
       new Date().toISOString()
-    return this.getOne(schemaId)
+    return this.getOne(entitySchemaId)
   }
 
   public deleteOne(entitySchemaId: string) {

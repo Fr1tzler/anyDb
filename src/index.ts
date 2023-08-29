@@ -3,10 +3,16 @@ import { applyMigrations } from './database/apply-migrations'
 import { dbQuery } from './database/connection'
 import { getBaseUrl, validatePathMatch } from './utils/server'
 import { ControllerGroup } from './types'
-import { schemaControllerGroup } from './controllers/schema.controller'
 
-const controllerGroups: ControllerGroup[] = [schemaControllerGroup]
+import { schemaControllerGroup } from './controllers/entity-schema.controller'
+import { entityControllerGroup } from './controllers/entity.controller'
 
+const controllerGroups: ControllerGroup[] = [
+  schemaControllerGroup,
+  entityControllerGroup,
+]
+
+// todo save source maps after build (?)
 // todo make server able to handle errors in controllers
 applyMigrations(dbQuery).then(() => {
   createServer(async (req: IncomingMessage, res: ServerResponse) => {

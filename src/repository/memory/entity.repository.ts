@@ -26,7 +26,7 @@ interface IOtherFields {
   id: string;
   createdAt: string;
   updatedAt: string;
-  schemaId: string;
+  entitySchemaId: string;
   schemaFieldId: string;
   entityId: string;
 }
@@ -48,10 +48,10 @@ export class EntityRepository implements IEntityRepository {
 
   // todo refactor
   public createOne(partialEntity: Partial<Entity>): Entity | null {
-    if (!partialEntity.schemaId) {
+    if (!partialEntity.entitySchemaId) {
       return null
     }
-    const fields = this.getFieldsBySchemaIds([partialEntity.schemaId])
+    const fields = this.getFieldsBySchemaIds([partialEntity.entitySchemaId])
 
     const entityFieldsToCreate: FieldValueType[] = []
 
@@ -61,7 +61,7 @@ export class EntityRepository implements IEntityRepository {
       id: randomUUID(),
       createdAt: now,
       updatedAt: now,
-      schemaId: partialEntity.schemaId,
+      entitySchemaId: partialEntity.entitySchemaId,
     }
 
     for (const field of fields) {
@@ -73,7 +73,7 @@ export class EntityRepository implements IEntityRepository {
         id: randomUUID(),
         createdAt: now,
         updatedAt: now,
-        schemaId: partialEntity.schemaId,
+        entitySchemaId: partialEntity.entitySchemaId,
         schemaFieldId: field.id,
         entityId: entity.id,
       }
@@ -108,7 +108,7 @@ export class EntityRepository implements IEntityRepository {
       offset + limit,
     )
     const uniqueSchemaIds = [
-      ...new Set(rawResult.map(({ schemaId }) => schemaId)),
+      ...new Set(rawResult.map(({ entitySchemaId }) => entitySchemaId)),
     ]
     const entityIds = rawResult.map(({ id }) => id)
     const allFields = this.getFieldsBySchemaIds(uniqueSchemaIds)
@@ -116,7 +116,7 @@ export class EntityRepository implements IEntityRepository {
 
     const result: Entity[] = rawResult.map((entityBase) => {
       const fields = allFields.filter(
-        ({ entitySchemaId }) => entitySchemaId === entityBase.schemaId,
+        ({ entitySchemaId }) => entitySchemaId === entityBase.entitySchemaId,
       )
       const fieldValues = allFieldValues.filter(
         ({ entityId }) => entityId === entityBase.id,
@@ -140,7 +140,7 @@ export class EntityRepository implements IEntityRepository {
       return null
     }
     const fieldValues = this.getFieldValuesByEntityIds([entityBase.id])
-    const fields = this.getFieldsBySchemaIds([entityBase.schemaId])
+    const fields = this.getFieldsBySchemaIds([entityBase.entitySchemaId])
     return this.mapFieldsToEntity(entityBase, fields, fieldValues)
   }
 
@@ -154,7 +154,7 @@ export class EntityRepository implements IEntityRepository {
     if (!entityToUpdate) {
       return null
     }
-    const fields = this.getFieldsBySchemaIds([entityToUpdate.schemaId])
+    const fields = this.getFieldsBySchemaIds([entityToUpdate.entitySchemaId])
     const fieldValuesToCreate: FieldValueType[] = []
     const fieldValueFieldIdsToDelete: string[] = []
     const now = new Date().toISOString()
@@ -169,7 +169,7 @@ export class EntityRepository implements IEntityRepository {
         id: randomUUID(),
         createdAt: now,
         updatedAt: now,
-        schemaId: entityToUpdate.schemaId,
+        entitySchemaId: entityToUpdate.entitySchemaId,
         schemaFieldId: field.id,
         entityId,
       }

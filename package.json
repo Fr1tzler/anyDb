@@ -4,13 +4,14 @@
   "description": "",
   "main": ".dist/index.js",
   "scripts": {
-    "start:dev": "tsc --outDir ./.dist && node ./.dist/src/index.js",
+    "start:dev": "ts-node ./src/index.ts",
     "build": "tsc --outDir ./.dist",
     "start": "node ./.dist/index.js",
     "lint": "eslint . --ext .ts --fix",
     "test": "jest --coverage",
     "postgres:start-local": "sh scripts/run-postgres.sh",
-    "postgres:migrations:create": "ts-node src/database/generate-migration.ts"
+    "postgres:migrations:create": "ts-node src/database/generate-migration.ts",
+    "postgres:migrations:revert": "ts-node src/database/revert-migration.ts"
   },
   "keywords": [],
   "author": "",

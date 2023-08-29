@@ -13,7 +13,7 @@ import { IListAllResponse } from '../utils/types'
 import { DbQueryExecutor } from '../database/types'
 
 interface IOtherFields {
-  schemaId: string;
+  entitySchemaId: string;
   schemaFieldId: string;
   entityId: string;
 }
@@ -40,16 +40,16 @@ export class EntityRepository implements IEntityRepository {
   public async createOne(
     partialEntity: Partial<Entity>,
   ): Promise<Entity | null> {
-    if (!partialEntity.schemaId) {
+    if (!partialEntity.entitySchemaId) {
       return null
     }
-    const fields = await this.getFieldsBySchemaIds([partialEntity.schemaId])
+    const fields = await this.getFieldsBySchemaIds([partialEntity.entitySchemaId])
 
     const entityFieldsToCreate: Partial<FieldValueType>[] = []
 
     const [entity] = await this.dbQuery<EntityType>(
-      'INSERT INTO "Entities"("entitySchemaId") VALUES ($1) RETURNING *',
-      [partialEntity.schemaId],
+      'INSERT INTO "Entity"("entitySchemaId") VALUES ($1) RETURNING *',
+      [partialEntity.entitySchemaId],
     )
 
     for (const field of fields) {
@@ -58,7 +58,7 @@ export class EntityRepository implements IEntityRepository {
         continue
       }
       const otherFields = {
-        schemaId: partialEntity.schemaId,
+        entitySchemaId: partialEntity.entitySchemaId,
         schemaFieldId: field.id,
         entityId: entity.id,
       }
@@ -72,6 +72,7 @@ export class EntityRepository implements IEntityRepository {
       }
     }
     await this.createEntityFields(entityFieldsToCreate)
+    console.log(2)
     return this.getOne(entity.id)
   }
 
@@ -90,7 +91,7 @@ export class EntityRepository implements IEntityRepository {
       [offset, limit],
     )
     const uniqueSchemaIds = [
-      ...new Set(rawResult.map(({ schemaId }) => schemaId)),
+      ...new Set(rawResult.map(({ entitySchemaId }) => entitySchemaId)),
     ]
     const entityIds = rawResult.map(({ id }) => id)
     const allFields = await this.getFieldsBySchemaIds(uniqueSchemaIds)
@@ -98,7 +99,7 @@ export class EntityRepository implements IEntityRepository {
 
     const result: Entity[] = rawResult.map((entityBase) => {
       const fields = allFields.filter(
-        ({ entitySchemaId }) => entitySchemaId === entityBase.schemaId,
+        ({ entitySchemaId }) => entitySchemaId === entityBase.entitySchemaId,
       )
       const fieldValues = allFieldValues.filter(
         ({ entityId }) => entityId === entityBase.id,
@@ -122,8 +123,15 @@ export class EntityRepository implements IEntityRepository {
     if (!entityBase) {
       return null
     }
+    console.log('[entityBase.entitySchemaId]', [entityBase.entitySchemaId])
+
+    const fields = await this.getFieldsBySchemaIds([entityBase.entitySchemaId])
+    console.log('fields', fields)
+
     const fieldValues = await this.getFieldValuesByEntityIds([entityBase.id])
-    const fields = await this.getFieldsBySchemaIds([entityBase.schemaId])
+    console.log('fieldValues', fieldValues)
+
+
     return this.mapFieldsToEntity(entityBase, fields, fieldValues)
   }
 
@@ -138,7 +146,7 @@ export class EntityRepository implements IEntityRepository {
     if (!entityToUpdate) {
       return null
     }
-    const fields = await this.getFieldsBySchemaIds([entityToUpdate.schemaId])
+    const fields = await this.getFieldsBySchemaIds([entityToUpdate.entitySchemaId])
     const fieldValuesToCreate: Partial<FieldValueType>[] = []
     const fieldValueFieldIdsToDelete: string[] = []
 
@@ -149,7 +157,7 @@ export class EntityRepository implements IEntityRepository {
       }
       fieldValueFieldIdsToDelete.push(field.id)
       const otherFields = {
-        schemaId: entityToUpdate.schemaId,
+        entitySchemaId: entityToUpdate.entitySchemaId,
         schemaFieldId: field.id,
         entityId,
       }
@@ -194,14 +202,14 @@ export class EntityRepository implements IEntityRepository {
       $${8 * index + 5}, 
       $${8 * index + 6}, 
       $${8 * index + 7}, 
-      $${8 * index + 8}, 
+      $${8 * index + 8} 
     )`,
       )
       .join(', ')
     await this.dbQuery<object>(
       `
-      INSERT INTO "SchemaField"(
-        "schemaId",
+      INSERT INTO "FieldValue"(
+        "entitySchemaId",
         "schemaFieldId",
         "entityId",
         "booleanValue",
@@ -215,7 +223,7 @@ export class EntityRepository implements IEntityRepository {
       fieldValues
         .map((el) => el as FieldValueType & FieldValueValues)
         .flatMap((fieldValue) => [
-          fieldValue.schemaId ?? null,
+          fieldValue.entitySchemaId ?? null,
           fieldValue.schemaFieldId ?? null,
           fieldValue.entityId ?? null,
           fieldValue.booleanValue ?? null,
@@ -245,7 +253,7 @@ export class EntityRepository implements IEntityRepository {
     schemaIds: string[],
   ): Promise<SchemaFieldType[]> {
     return await this.dbQuery<SchemaFieldType>(
-      'SELECT * FROM "SchemaField" WHERE "schemaFieldId" = ANY($1)',
+      'SELECT * FROM "SchemaField" WHERE "entitySchemaId" = ANY($1)',
       [schemaIds],
     )
   }

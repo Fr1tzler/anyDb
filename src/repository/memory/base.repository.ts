@@ -51,7 +51,7 @@ export class BaseRepository {
       ({ entitySchemaId }) => !schemaIdDiff.includes(entitySchemaId),
     )
     this.entityList = this._entityList.filter(
-      ({ schemaId }) => !schemaIdDiff.includes(schemaId),
+      ({ entitySchemaId }) => !schemaIdDiff.includes(entitySchemaId),
     )
   }
 

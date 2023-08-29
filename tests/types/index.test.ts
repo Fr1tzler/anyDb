@@ -15,7 +15,7 @@ const baseValueType = {
   id: nilUuid,
   createdAt: now,
   updatedAt: now,
-  schemaId: nilUuid,
+  entitySchemaId: nilUuid,
   schemaFieldId: nilUuid,
   entityId: nilUuid,
 }
