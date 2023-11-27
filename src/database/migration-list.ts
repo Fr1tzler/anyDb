@@ -2,10 +2,10 @@
 
 import { DatabaseMigrationType } from './types'
 
-import { InitDbMigration } from './migrations/1692808917380-init-db'
+import { InitDbMigration1692808917380 } from './migrations/1692808917380-init-db'
 // INSERT_POSITION
 
 export const migrationList: DatabaseMigrationType[] = [
-  InitDbMigration,
+  InitDbMigration1692808917380,
   // MIGRATION_LIST_POSITION
 ]

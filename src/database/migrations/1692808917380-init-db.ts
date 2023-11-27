@@ -1,7 +1,7 @@
 import { DatabaseMigrationType, DbQueryExecutor } from '../types'
 
-export const InitDbMigration: DatabaseMigrationType = {
-  tag: 'InitDbMigration',
+export const InitDbMigration1692808917380: DatabaseMigrationType = {
+  tag: 'InitDbMigration1692808917380',
 
   up: async (dbQuery: DbQueryExecutor) => {
     await dbQuery('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')

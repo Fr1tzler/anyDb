@@ -2,7 +2,6 @@ import { writeFile, readFile } from 'fs/promises'
 import path from 'path'
 import { toUpperCamelCase } from '../utils/string-transformer'
 
-// todo pass timestamp to migration name
 const getMigrationSkeleton = (migrationName: string) => `
 import { DatabaseMigrationType, DbQueryExecutor } from '../types'
 
@@ -50,6 +49,6 @@ async function insertMigrationToMigrationListFile(
   const tag = `${timestamp}-${migrationName}`
   const filePath = path.join('./src/database/migrations', `${tag}.ts`)
   const camelCaseMigrationName = `${toUpperCamelCase(migrationName)}Migration`
-  await writeFile(filePath, getMigrationSkeleton(camelCaseMigrationName))
+  await writeFile(filePath, getMigrationSkeleton(`${camelCaseMigrationName}${timestamp}`))
   await insertMigrationToMigrationListFile(tag, camelCaseMigrationName)
 })()

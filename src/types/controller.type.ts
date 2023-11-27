@@ -7,11 +7,20 @@ export enum HttpMethod {
   DELETE = 'DELETE',
 }
 
+export type IncomingRequest = {
+  request: IncomingMessage,
+  params: Record<string, string>,
+  getBody<T>(): Promise<T>,
+};
+
+export type Handler = (req: IncomingRequest, res: ServerResponse) => unknown;
+
 export type Controller = {
   path: string;
   method: HttpMethod;
-  executor: (req: IncomingMessage, res: ServerResponse) => unknown;
+  handler: Handler;
 };
+
 
 export type ControllerGroup = {
   controllers: Controller[];
