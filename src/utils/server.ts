@@ -29,7 +29,6 @@ export function validatePathMatch(
   return true
 }
 
-// todo handle numbers and boolean values
 export function getPathParams<T extends { [key: string]: string }>(
   requestPath: string,
   controllerPath: string,
@@ -79,13 +78,9 @@ export class Server {
     createServer(async (req: IncomingMessage, res: ServerResponse) => {
       const reqBaseUrl = getBaseUrl(req.url)
 
-      console.log('reqBaseUrl', reqBaseUrl)
-      console.log('this.controllers', this.controllers)
-
       const candidates = this.controllers
         .filter((controller) => controller.method === req.method)
         .filter((controller) => validatePathMatch(reqBaseUrl, controller.path))
-      console.log('candidates', candidates)
       const [controller] = candidates
       if (!controller) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
@@ -106,10 +101,16 @@ export class Server {
         res.write(JSON.stringify(responseData))
         res.end()
       } catch (error) {
-        console.log(error)
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.write(JSON.stringify(error))
-        res.end()
+        if (error instanceof Error) {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          const { name, message, stack } = error
+          res.write(JSON.stringify({ name, message, stack }))
+          res.end()
+        } else {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.write(JSON.stringify(error))
+          res.end()
+        }
       }
     }).listen(port, () => console.log(`Server is running on port ${port}`))
   }

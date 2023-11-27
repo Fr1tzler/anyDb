@@ -72,12 +72,10 @@ export class EntityRepository implements IEntityRepository {
       }
     }
     await this.createEntityFields(entityFieldsToCreate)
-    console.log(2)
     return this.getOne(entity.id)
   }
 
   // todo implement query
-  // todo search by schema id
   public async listAll(
     offset: number = 0,
     limit: number = 20,
@@ -123,14 +121,9 @@ export class EntityRepository implements IEntityRepository {
     if (!entityBase) {
       return null
     }
-    console.log('[entityBase.entitySchemaId]', [entityBase.entitySchemaId])
 
     const fields = await this.getFieldsBySchemaIds([entityBase.entitySchemaId])
-    console.log('fields', fields)
-
     const fieldValues = await this.getFieldValuesByEntityIds([entityBase.id])
-    console.log('fieldValues', fieldValues)
-
 
     return this.mapFieldsToEntity(entityBase, fields, fieldValues)
   }

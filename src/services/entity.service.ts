@@ -1,7 +1,6 @@
 import { Entity } from '../entity/entity.entity'
 import { EntityRepository } from '../repository/entity.repository'
 
-// todo use something like bind()
 export class EnttityService {
   constructor (private entiryRepository: EntityRepository) {}
 

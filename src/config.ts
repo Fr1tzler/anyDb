@@ -7,3 +7,7 @@ export const dbConfig: ConnectionConfig = {
   port: Number(process.env.DB_PORT) ?? 5432,
   host: process.env.DB_HOST ?? 'localhost',
 }
+
+export const appConfig = {
+  port: Number(process.env.PORT ?? 3000),
+}

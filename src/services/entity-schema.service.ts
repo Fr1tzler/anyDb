@@ -1,7 +1,6 @@
 import { EntitySchema } from '../entity/entity-schema.entity'
 import { EntitySchemaRepository } from '../repository/entity-schema.repository'
 
-// todo use something like bind()
 export class EnttitySchemaService {
   constructor (private entirySchemaRepository: EntitySchemaRepository) {}
 
