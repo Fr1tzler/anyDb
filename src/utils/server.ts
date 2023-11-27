@@ -1,6 +1,9 @@
 import { IncomingMessage, ServerResponse, createServer } from 'http'
 import { Controller } from '../types'
 import { Handler, HttpMethod, IncomingRequest } from '../types/controller.type'
+import { Logger } from './logger'
+
+const logger = new Logger('Server')
 
 // #region URL PARSING
 
@@ -34,7 +37,7 @@ export function getPathParams<T extends { [key: string]: string }>(
   controllerPath: string,
 ): T {
   if (!validatePathMatch(requestPath, controllerPath)) {
-    console.warn(`url "${requestPath}" can't be mapped to "${controllerPath}"`)
+    logger.error(`url "${requestPath}" can't be mapped to "${controllerPath}"`)
     throw new Error(
       `url "${requestPath}" can't be mapped to "${controllerPath}"`,
     )
@@ -112,7 +115,7 @@ export class Server {
           res.end()
         }
       }
-    }).listen(port, () => console.log(`Server is running on port ${port}`))
+    }).listen(port, () => logger.info(`Server is running on port ${port}`))
   }
 
   public use(subpath: string, server: Server) {

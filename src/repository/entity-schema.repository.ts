@@ -147,14 +147,12 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     ])
   }
 
-  // todo refactor
   private async deleteFieldListByFieldIds(fieldIds: string[]): Promise<void> {
     await this.dbQuery('DELETE FROM "SchemaField" WHERE "id" = ANY($1)', [
       fieldIds,
     ])
   }
 
-  // todo refactor
   private async createSchemaFields(
     fields: { fieldName: string; type: FieldType }[],
     entitySchemaId: string,

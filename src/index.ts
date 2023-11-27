@@ -9,5 +9,4 @@ const server = new Server()
 server.use('/entity', entityController)
 server.use('/schema', schemaController)
 
-// todo implement logger
 applyMigrations(dbQuery).then(() => server.listen(appConfig.port))

@@ -1,8 +1,11 @@
+import { Logger } from '../utils/logger'
 import { dbQuery } from './connection'
 import { migrationList } from './migration-list'
 import { readFile, writeFile } from 'fs/promises'
 
-(async () => {
+const logger = new Logger('Migrations revert')
+
+const revertMigrations = async () => {
   const dbMigrationsList = await dbQuery<{ tag: string }>(`
     SELECT * FROM "migrations" ORDER BY "id" DESC LIMIT 1
   `)
@@ -28,5 +31,7 @@ import { readFile, writeFile } from 'fs/promises'
     .filter(el => !el.includes(migration.tag))
     .join('\n')
   await writeFile('./src/database/migration-list.ts', newFileContents)
-  console.log(`Migration "${migration.tag}" successfully reverted`)
-})()
+  logger.info(`Migration "${migration.tag}" successfully reverted`)
+}
+
+revertMigrations()

@@ -1,6 +1,9 @@
 import { writeFile, readFile } from 'fs/promises'
 import path from 'path'
 import { toUpperCamelCase } from '../utils/string-transformer'
+import { Logger } from '../utils/logger'
+
+const logger = new Logger('Migrations generator')
 
 const getMigrationSkeleton = (migrationName: string) => `
 import { DatabaseMigrationType, DbQueryExecutor } from '../types'
@@ -42,7 +45,7 @@ async function insertMigrationToMigrationListFile(
 (async () => {
   const migrationName = process.argv[2]
   if (!migrationName) {
-    console.error('Provide migration name')
+    logger.error('Provide migration name')
     return
   }
   const timestamp = new Date().getTime()

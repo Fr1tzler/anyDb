@@ -1,5 +1,8 @@
+import { Logger } from '../utils/logger'
 import { migrationList } from './migration-list'
 import { DbQueryExecutor, MigrationEntity } from './types'
+
+const logger = new Logger('Migrations')
 
 async function createMigrationsTable(dbQuery: DbQueryExecutor): Promise<void> {
   await dbQuery<object>(`
@@ -29,9 +32,9 @@ async function checkActiveMigrations(
       tablename  = 'migrations'
   `)
   if (!migrationsExistResult.length) {
-    console.info('Initialising migrations table')
+    logger.info('Initialising migrations table')
     await createMigrationsTable(dbQuery)
-    console.info('Migrations table created')
+    logger.info('Migrations table created')
     return []
   }
   const existResult = await dbQuery<MigrationEntity>(
@@ -53,8 +56,8 @@ export async function applyMigrations(dbQuery: DbQueryExecutor) {
       continue
     }
     await migration.up(dbQuery)
-    console.info(`${migration.tag} sucessfully applied`)
+    logger.info(`${migration.tag} sucessfully applied`)
     await registerMigration(migration.tag, dbQuery)
   }
-  console.info('Migrations applied succesfully')
+  logger.info('Migrations applied succesfully')
 }

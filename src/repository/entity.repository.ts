@@ -36,7 +36,6 @@ type FieldValueValues = {
 export class EntityRepository implements IEntityRepository {
   constructor(private dbQuery: DbQueryExecutor) {}
 
-  // todo refactor
   public async createOne(
     partialEntity: Partial<Entity>,
   ): Promise<Entity | null> {
@@ -75,7 +74,6 @@ export class EntityRepository implements IEntityRepository {
     return this.getOne(entity.id)
   }
 
-  // todo implement query
   public async listAll(
     offset: number = 0,
     limit: number = 20,
@@ -181,7 +179,6 @@ export class EntityRepository implements IEntityRepository {
     await this.dbQuery('DELETE FROM "Entity" WHERE "id" = $1', [entityId])
   }
 
-  // todo refactor
   private async createEntityFields(
     fieldValues: Partial<FieldValueType>[],
   ): Promise<void> {
