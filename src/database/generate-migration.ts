@@ -5,6 +5,8 @@ import { Logger } from '../utils/logger'
 
 const logger = new Logger('Migrations generator')
 
+// todo так-то не надо хранить в коде список миграций, я бы это как-то через fs читал (priority 3/10)
+
 const getMigrationSkeleton = (migrationName: string) => `
 import { DatabaseMigrationType, DbQueryExecutor } from '../types'
 

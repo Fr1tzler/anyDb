@@ -1,7 +1,7 @@
 import { Entity } from '../entity/entity.entity'
 import { EntityRepository } from '../repository/entity.repository'
 
-export class EnttityService {
+export class EntityService {
   constructor (private entiryRepository: EntityRepository) {}
 
   public listAllBySchemaId(entitySchemaId: string, offset?: number, limit?: number) {

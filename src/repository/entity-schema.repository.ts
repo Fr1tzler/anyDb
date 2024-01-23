@@ -164,6 +164,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     if (!fields.length) {
       return
     }
+    // todo use method from utils
     const parametersInsertionString = fields
       .map(
         (_, index) =>

@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http'
 
+// todo rm enum and use something like Record instead (6 / 10)
 export enum HttpMethod {
   GET = 'GET',
   POST = 'POST',

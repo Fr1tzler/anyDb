@@ -3,9 +3,11 @@
 import { DatabaseMigrationType } from './types'
 
 import { InitDbMigration1692808917380 } from './migrations/1692808917380-init-db'
+import { CreateEndpointEntityMigration1706027953910 } from './migrations/1706027953910-create-endpoint-entity'
 // INSERT_POSITION
 
 export const migrationList: DatabaseMigrationType[] = [
   InitDbMigration1692808917380,
+  CreateEndpointEntityMigration1706027953910,
   // MIGRATION_LIST_POSITION
 ]

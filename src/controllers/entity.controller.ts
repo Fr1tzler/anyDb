@@ -2,11 +2,11 @@ import { Server } from '../utils/server'
 import { dbQuery } from '../database/connection'
 import { EntityRepository } from '../repository/entity.repository'
 import { Entity } from '../entity/entity.entity'
-import { EnttityService } from '../services/entity.service'
+import { EntityService } from '../services/entity.service'
 import { EntityRoutes } from '../routes'
 
 const entityRepository = new EntityRepository(dbQuery)
-const entityService = new EnttityService(entityRepository)
+const entityService = new EntityService(entityRepository)
 
 const server = new Server()
 

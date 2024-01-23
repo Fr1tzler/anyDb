@@ -26,3 +26,25 @@ export const EntityRoutes: Routes = {
     deleteOne: (entityId = ':entityId') => `/${entityId}`,
   }
 }
+
+export const EndpointRoutes: Routes = {
+  basePath: '/endpoint',
+  routes: {
+    listAll: () => '/',
+    getOne: (endpointId = ':endpointId') => `/${endpointId}`,
+    createOne: () => '/',
+    updateOne: (endpointId = ':endpointId') => `/${endpointId}`,
+    deleteOne: (endpointId = ':endpointId') => `/${endpointId}`,
+  }
+}
+
+export const EndpointApiRoutes: Routes = {
+  basePath: '/api',
+  routes: {
+    listAll: (endpointPath = ':endpointPath') => `/${endpointPath}`,
+    getOne: (endpointPath = ':endpointPath', entityId = ':entityId') => `/${endpointPath}/${entityId}`,
+    createOne: (endpointPath = ':endpointPath') => `/${endpointPath}`,
+    updateOne: (endpointPath = ':endpointPath', entityId = ':entityId') => `/${endpointPath}/${entityId}`,
+    deleteOne: (endpointPath = ':endpointPath', entityId = ':entityId') => `/${endpointPath}/${entityId}`,
+  }
+}
