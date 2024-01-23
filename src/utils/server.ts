@@ -7,10 +7,24 @@ const logger = new Logger('Server')
 
 // #region URL PARSING
 
+/**
+ * Returns the base URL from the given request URL by removing any query parameters.
+ *
+ * @param {string | undefined} requestUrl - The request URL to extract the base URL from.
+ * @return {string} The base URL extracted from the request URL,
+ *                  or '/' if the request URL is undefined.
+ */
 export function getBaseUrl(requestUrl: string | undefined) {
   return requestUrl ? requestUrl.split('?')[0] : '/'
 }
 
+/**
+ * Validates if the request path matches the controller path.
+ *
+ * @param {string} requestPath - the path sent in the request
+ * @param {string} controllerPath - the path defined in the controller
+ * @return {boolean} true if the paths match, false otherwise
+ */
 export function validatePathMatch(
   requestPath: string,
   controllerPath: string,
@@ -32,6 +46,14 @@ export function validatePathMatch(
   return true
 }
 
+/**
+ * Returns the path parameters extracted from the request path
+ * based on the controller path.
+ *
+ * @param {string} requestPath - The request path
+ * @param {string} controllerPath - The controller path
+ * @return {T} The path parameters as an object
+ */
 export function getPathParams<T extends { [key: string]: string }>(
   requestPath: string,
   controllerPath: string,
@@ -58,6 +80,12 @@ export function getPathParams<T extends { [key: string]: string }>(
 
 // #region REQUEST PARSING
 
+/**
+ * Asynchronously extracts the body from the incoming message and parses it into the specified type.
+ *
+ * @param {IncomingMessage} req - the incoming message object
+ * @return {Promise<T>} a promise that resolves to the parsed body of type T
+ */
 async function extractBody<T>(req: IncomingMessage): Promise<T> {
   const bodyChunks: string[] = []
   req.on('data', (chunk) => bodyChunks.push(chunk))
@@ -121,6 +149,13 @@ export class Server {
     }).listen(port, () => logger.info(`Server is running on port ${port}`))
   }
 
+  /**
+   * Adds the controllers from the provided server to the current instance,
+   * after modifying the paths to include the specified subpath.
+   *
+   * @param {string} subpath - the subpath to be included in the controller paths
+   * @param {Server} server - the server containing controllers to be added
+   */
   public use(subpath: string, server: Server) {
     this.controllers.push(...server.controllers.map((controller) => ({
       ...controller,
@@ -128,18 +163,46 @@ export class Server {
     })))
   }
 
+  /**
+   * Adds a new route with the specified path and handler for GET requests.
+   *
+   * @param {string} path - the path for the new route
+   * @param {Handler} handler - the handler function for the new route
+   * @return {void}
+   */
   public get(path: string, handler: Handler) {
     this.controllers.push({ handler, path, method: HttpMethod.GET })
   }
 
+  /**
+   * Adds a new route with the specified path and handler for POST requests.
+   *
+   * @param {string} path - the path for the new route
+   * @param {Handler} handler - the handler function for the new route
+   * @return {void}
+   */
   public post(path: string, handler: Handler) {
     this.controllers.push({ handler, path, method: HttpMethod.POST })
   }
 
+  /**
+   * Adds a new route with the specified path and handler for PUT requests.
+   *
+   * @param {string} path - the path for the new route
+   * @param {Handler} handler - the handler function for the new route
+   * @return {void}
+   */
   public put(path: string, handler: Handler) {
     this.controllers.push({ handler, path, method: HttpMethod.PUT })
   }
 
+  /**
+   * Adds a new route with the specified path and handler for DELETE requests.
+   *
+   * @param {string} path - the path for the new route
+   * @param {Handler} handler - the handler function for the new route
+   * @return {void}
+   */
   public delete(path: string, handler: Handler) {
     this.controllers.push({ handler, path, method: HttpMethod.DELETE })
   }

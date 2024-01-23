@@ -8,6 +8,10 @@ export class EnttityService {
     return this.entiryRepository.listAll(offset, limit)
   }
 
+  public listAllBySchemaId(entitySchemaId: string, offset?: number, limit?: number) {
+    return this.entiryRepository.listAllBySchemaId(entitySchemaId, offset, limit)
+  }
+
   public createOne(partialEntity: Partial<Entity>) {
     return this.entiryRepository.createOne(partialEntity)
   }

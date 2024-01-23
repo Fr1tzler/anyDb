@@ -1,28 +1,18 @@
 import { Entity } from '../entity/entity.entity'
-import { EntityType, FieldType, SchemaFieldType } from '../types'
-import {
-  EntityFieldValueType,
-  FieldValueType,
-  RecordType,
-  fieldIsBoolean,
-  fieldIsNumber,
-  fieldIsObject,
-  fieldIsString,
-} from '../types'
+import { EntityType, SchemaFieldType } from '../types'
+import { FieldValueType } from '../types'
 import { IListAllResponse } from '../utils/types'
 import { DbQueryExecutor } from '../database/types'
-
-interface IOtherFields {
-  entitySchemaId: string;
-  schemaFieldId: string;
-  entityId: string;
-}
+import { generateDbParametersList } from '../utils/db-utils'
+import { filterByFieldValue, getUniqueArrayValues, mapArrayToArrayKeys } from '../utils/array'
+import { getFieldValueFromObjectField, getValueFromFieldValue } from '../utils/field-value'
 
 export interface IEntityRepository {
-  createOne(partialEntity: Partial<Entity>): Promise<Entity | null>;
+  createOne(partialEntity: Partial<Entity>): Promise<Entity>;
+  updateOne(id: string, partialEntity: Partial<Entity>): Promise<Entity>;
   listAll(offset?: number, limit?: number): Promise<IListAllResponse<Entity>>;
-  getOne(id: string): Promise<Entity | null>;
-  updateOne(id: string, partialEntity: Partial<Entity>): Promise<Entity | null>;
+  listAllBySchemaId(schemaId: string,offset?: number, limit?: number): Promise<IListAllResponse<Entity>>;
+  getOne(id: string): Promise<Entity>;
   deleteOne(id: string): Promise<void>;
 }
 
@@ -38,106 +28,89 @@ export class EntityRepository implements IEntityRepository {
 
   public async createOne(
     partialEntity: Partial<Entity>,
-  ): Promise<Entity | null> {
+  ): Promise<Entity> {
     if (!partialEntity.entitySchemaId) {
-      return null
+      throw new Error('entitySchemaId is required')
     }
-    const fields = await this.getFieldsBySchemaIds([partialEntity.entitySchemaId])
-
-    const entityFieldsToCreate: Partial<FieldValueType>[] = []
-
     const [entity] = await this.dbQuery<EntityType>(
       'INSERT INTO "Entity"("entitySchemaId") VALUES ($1) RETURNING *',
       [partialEntity.entitySchemaId],
     )
 
-    for (const field of fields) {
-      const value = partialEntity[field.fieldName]
-      if (!value && value !== false) {
-        continue
-      }
-      const otherFields = {
-        entitySchemaId: partialEntity.entitySchemaId,
-        schemaFieldId: field.id,
-        entityId: entity.id,
-      }
-      const fieldValueObject = this.getFieldValueFromObjectField(
-        field,
-        value,
-        otherFields,
-      )
-      if (fieldValueObject) {
-        entityFieldsToCreate.push(fieldValueObject)
-      }
-    }
-    await this.createEntityFields(entityFieldsToCreate)
+    const fields = await this.getFieldsBySchemaIds([partialEntity.entitySchemaId])
+    await this.syncronizeEntityFields(fields, partialEntity, entity.id, entity.entitySchemaId)
+
     return this.getOne(entity.id)
+  }
+
+  public async updateOne(
+    entityId: string,
+    partialEntity: Partial<Entity>,
+  ): Promise<Entity> {
+    const entityToUpdate = await this.getOne(entityId)
+
+    const fields = await this.getFieldsBySchemaIds([entityToUpdate.entitySchemaId])
+    await this.syncronizeEntityFields(fields, partialEntity, entityId, entityToUpdate.entitySchemaId)
+
+    await this.dbQuery(
+      'UPDATE "Entity" SET "updatedAt" = current_timestamp(0) WHERE "id" = $1',
+      [entityId],
+    )
+    return this.getOne(entityId)
   }
 
   public async listAll(
     offset: number = 0,
     limit: number = 20,
   ): Promise<IListAllResponse<Entity>> {
-    const totalResult = await this.dbQuery<{ count: string }>(
-      'SELECT COUNT(*) AS "count" FROM "Entity"',
+    const { total, rawResult } = await this.listEntityBase(offset, limit)
+    const entityIds = mapArrayToArrayKeys(rawResult, 'id')
+    const { allFields, allFieldValues } = await this.getFieldValuesForEntityList(
+      mapArrayToArrayKeys(rawResult, 'entitySchemaId'),
+      entityIds
     )
-    const total = Number(totalResult[0].count)
-    const rawResult = await this.dbQuery<EntityType>(
-      'SELECT * FROM "Entity" OFFSET $1 LIMIT $1',
-      [offset, limit],
-    )
-    const uniqueSchemaIds = [
-      ...new Set(rawResult.map(({ entitySchemaId }) => entitySchemaId)),
-    ]
-    const entityIds = rawResult.map(({ id }) => id)
-    const allFields = await this.getFieldsBySchemaIds(uniqueSchemaIds)
-    const allFieldValues = await this.getFieldValuesByEntityIds(entityIds)
-
     const result: Entity[] = rawResult.map((entityBase) => {
-      const fields = allFields.filter(
-        ({ entitySchemaId }) => entitySchemaId === entityBase.entitySchemaId,
-      )
-      const fieldValues = allFieldValues.filter(
-        ({ entityId }) => entityId === entityBase.id,
-      )
+      const { fields, fieldValues } = this.filterFieldsByEntity(entityBase, allFields, allFieldValues)
       return this.mapFieldsToEntity(entityBase, fields, fieldValues)
     })
-
-    return {
-      offset,
-      limit,
-      total,
-      result,
-    }
+    return { offset, limit, total, result }
   }
 
-  public async getOne(entityId: string): Promise<Entity | null> {
+
+  public async listAllBySchemaId(entitySchemaId: string, offset: number = 0, limit: number = 20) {
+    const { total, rawResult } = await this.listEntityBase(offset, limit, entitySchemaId)
+    const entityIds = mapArrayToArrayKeys(rawResult, 'id')
+    const { allFields, allFieldValues } = await this.getFieldValuesForEntityList(entitySchemaId, entityIds)
+    const result: Entity[] = rawResult.map((entityBase) => {
+      const { fields, fieldValues } = this.filterFieldsByEntity(entityBase, allFields, allFieldValues)
+      return this.mapFieldsToEntity(entityBase, fields, fieldValues)
+    })
+    return { offset, limit, total, result }
+  }
+
+  public async getOne(entityId: string): Promise<Entity> {
     const [entityBase] = await this.dbQuery<EntityType>(
       'SELECT * FROM "Entity" WHERE "id" = $1',
       [entityId],
     )
     if (!entityBase) {
-      return null
+      throw new Error('entity not found')
     }
 
-    const fields = await this.getFieldsBySchemaIds([entityBase.entitySchemaId])
-    const fieldValues = await this.getFieldValuesByEntityIds([entityBase.id])
-
+    const { allFields, allFieldValues } = await this.getFieldValuesForEntityList(entityBase.entitySchemaId, [entityId])
+    const { fields, fieldValues } = this.filterFieldsByEntity(entityBase, allFields, allFieldValues)
     return this.mapFieldsToEntity(entityBase, fields, fieldValues)
   }
 
-  public async updateOne(
-    entityId: string,
+  public async deleteOne(entityId: string): Promise<void> {
+    await this.dbQuery('DELETE FROM "Entity" WHERE "id" = $1', [entityId])
+  }
+
+  private async syncronizeEntityFields(
+    fields: SchemaFieldType[],
     partialEntity: Partial<Entity>,
-  ): Promise<Entity | null> {
-    const [entityToUpdate] = await this.dbQuery<EntityType>(
-      'SELECT * FROM "Entity" WHERE "id" = $1',
-      [entityId],
-    )
-    if (!entityToUpdate) {
-      return null
-    }
-    const fields = await this.getFieldsBySchemaIds([entityToUpdate.entitySchemaId])
+    entityId: string, entitySchemaId: string
+  ) {
     const fieldValuesToCreate: Partial<FieldValueType>[] = []
     const fieldValueFieldIdsToDelete: string[] = []
 
@@ -148,11 +121,11 @@ export class EntityRepository implements IEntityRepository {
       }
       fieldValueFieldIdsToDelete.push(field.id)
       const otherFields = {
-        entitySchemaId: entityToUpdate.entitySchemaId,
+        entitySchemaId: entitySchemaId,
         schemaFieldId: field.id,
         entityId,
       }
-      const fieldValueToCreate = this.getFieldValueFromObjectField(
+      const fieldValueToCreate = getFieldValueFromObjectField(
         field,
         value,
         otherFields,
@@ -161,41 +134,48 @@ export class EntityRepository implements IEntityRepository {
         fieldValuesToCreate.push(fieldValueToCreate)
       }
     }
-
-    await this.dbQuery(
-      'UPDATE "Entity" SET "updatedAt" = current_timestamp(0) WHERE "id" = $1',
-      [entityId],
-    )
     await this.dbQuery(
       'DELETE FROM "FieldValue" WHERE "entityId" = $1 AND "schemaFieldId" = ANY($2)',
       [entityId, fieldValueFieldIdsToDelete],
     )
     await this.createEntityFields(fieldValuesToCreate)
-
-    return this.getOne(entityId)
   }
 
-  public async deleteOne(entityId: string): Promise<void> {
-    await this.dbQuery('DELETE FROM "Entity" WHERE "id" = $1', [entityId])
+  private async listEntityBase(offset: number = 0, limit: number = 20, entitySchemaId?: string) {
+    const totalResult = await this.dbQuery<{ count: string }>(
+      `SELECT COUNT(*) AS "count" FROM "Entity" ${ entitySchemaId ? 'WHERE "entitySchemaId" = $1' : ''}`,
+      [entitySchemaId || null].filter(Boolean)
+    )
+    const total = Number(totalResult[0].count)
+    const rawResult = await this.dbQuery<EntityType>(
+      `SELECT * FROM "Entity" ${ entitySchemaId ? 'WHERE "entitySchemaId" = $1' : ''} OFFSET $1 LIMIT $2`,
+      [offset, limit, entitySchemaId || null].filter(el => !el && el !== 0)
+    )
+    return { total, rawResult }
+  }
+
+  private async getFieldValuesForEntityList(schemaId: string | string[], entityIds: string[]) {
+    const uniqueSchemaIds = Array.isArray(schemaId) ? getUniqueArrayValues(schemaId) : [schemaId]
+    const allFields = await this.getFieldsBySchemaIds(uniqueSchemaIds)
+    const allFieldValues = await this.dbQuery<FieldValueType>(
+      'SELECT * FROM "FieldValue" where "entityId" = ANY($1)',
+      [entityIds],
+    )
+    return { allFields, allFieldValues}
+  }
+
+  private filterFieldsByEntity(
+    entityBase: EntityType, allFields: SchemaFieldType[], allFieldValues: FieldValueType[],
+  ) {
+    const fields = filterByFieldValue(allFields, 'entitySchemaId', entityBase.entitySchemaId)
+    const fieldValues = filterByFieldValue(allFieldValues, 'entityId', entityBase.id)
+    return { fields, fieldValues}
   }
 
   private async createEntityFields(
     fieldValues: Partial<FieldValueType>[],
   ): Promise<void> {
-    const parametersInsertionString = fieldValues
-      .map(
-        (_, index) => `(
-      $${8 * index + 1}, 
-      $${8 * index + 2}, 
-      $${8 * index + 3}, 
-      $${8 * index + 4}, 
-      $${8 * index + 5}, 
-      $${8 * index + 6}, 
-      $${8 * index + 7}, 
-      $${8 * index + 8} 
-    )`,
-      )
-      .join(', ')
+    const parametersInsertionString = generateDbParametersList(fieldValues.length, 8)
     await this.dbQuery<object>(
       `
       INSERT INTO "FieldValue"(
@@ -234,7 +214,7 @@ export class EntityRepository implements IEntityRepository {
     for (const field of fields) {
       const fieldValue =
         fieldValues.find((value) => value.schemaFieldId === field.id) ?? null
-      result[field.fieldName] = this.getValueFromFieldValue(fieldValue)
+      result[field.fieldName] = getValueFromFieldValue(fieldValue)
     }
     return result
   }
@@ -246,69 +226,5 @@ export class EntityRepository implements IEntityRepository {
       'SELECT * FROM "SchemaField" WHERE "entitySchemaId" = ANY($1)',
       [schemaIds],
     )
-  }
-
-  private async getFieldValuesByEntityIds(entityIds: string[]) {
-    return await this.dbQuery<FieldValueType>(
-      'SELECT * FROM "FieldValue" where "entityId" = ANY($1)',
-      [entityIds],
-    )
-  }
-
-  private getFieldValueFromObjectField(
-    field: SchemaFieldType,
-    value: EntityFieldValueType,
-    otherFields: IOtherFields,
-  ): Partial<FieldValueType> | null {
-    if (field.type === FieldType.BOOLEAN) {
-      return {
-        booleanValue: Boolean(value),
-        ...otherFields,
-        type: field.type,
-      }
-    }
-    if (field.type === FieldType.NUMBER) {
-      return {
-        numberValue: Number(value),
-        ...otherFields,
-        type: field.type,
-      }
-    }
-    if (field.type === FieldType.STRING) {
-      return {
-        stringValue: String(value),
-        ...otherFields,
-        type: field.type,
-      }
-    }
-    if (field.type === FieldType.JSON) {
-      return {
-        objectValue: value as RecordType,
-        ...otherFields,
-        type: field.type,
-      }
-    }
-    return null
-  }
-
-  private getValueFromFieldValue(
-    input: FieldValueType | null,
-  ): EntityFieldValueType {
-    if (!input) {
-      return null
-    }
-    if (fieldIsBoolean(input)) {
-      return input.booleanValue
-    }
-    if (fieldIsNumber(input)) {
-      return input.numberValue
-    }
-    if (fieldIsString(input)) {
-      return input.stringValue
-    }
-    if (fieldIsObject(input)) {
-      return input.objectValue
-    }
-    return null
   }
 }

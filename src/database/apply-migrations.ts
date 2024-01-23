@@ -4,6 +4,12 @@ import { DbQueryExecutor, MigrationEntity } from './types'
 
 const logger = new Logger('Migrations')
 
+/**
+ * Asynchronously creates a migrations table in the database using the provided DbQueryExecutor.
+ *
+ * @param {DbQueryExecutor} dbQuery - the database query executor
+ * @return {Promise<void>} a promise that resolves when the table is created
+ */
 async function createMigrationsTable(dbQuery: DbQueryExecutor): Promise<void> {
   await dbQuery<object>(`
     CREATE SEQUENCE migrations_id_seq;
@@ -19,6 +25,12 @@ async function createMigrationsTable(dbQuery: DbQueryExecutor): Promise<void> {
   `)
 }
 
+/**
+ * Checks if there are active migrations in the database.
+ *
+ * @param {DbQueryExecutor} dbQuery - the database query executor
+ * @return {Promise<string[]>} the list of active migrations
+ */
 async function checkActiveMigrations(
   dbQuery: DbQueryExecutor,
 ): Promise<string[]> {
@@ -44,10 +56,25 @@ async function checkActiveMigrations(
   return existResult.map(({ tag }) => tag)
 }
 
+/**
+ * Asynchronously registers a migration with the provided tag using the given
+ * database query executor.
+ *
+ * @param {string} tag - The tag of the migration to be registered
+ * @param {DbQueryExecutor} dbQuery - The database query executor
+ * @return {Promise<void>} A promise that resolves when the migration is
+ * successfully registered
+ */
 async function registerMigration(tag: string, dbQuery: DbQueryExecutor) {
   await dbQuery<object>('INSERT INTO migrations (tag) VALUES ($1)', [tag])
 }
 
+/**
+ * Applies pending migrations to the database.
+ *
+ * @param {DbQueryExecutor} dbQuery - the database query executor
+ * @return {Promise<void>} a promise that resolves once all migrations are applied
+ */
 export async function applyMigrations(dbQuery: DbQueryExecutor) {
   const appliedMigrationTags = await checkActiveMigrations(dbQuery)
 

@@ -21,6 +21,13 @@ export const ${migrationName}: DatabaseMigrationType = {
 }
 `
 
+/**
+ * Inserts a migration import and name into the migration list file.
+ *
+ * @param {string} tag - the tag of the migration
+ * @param {string} migrationName - the name of the migration
+ * @return {Promise<void>} a Promise that resolves when the operation is complete
+ */
 async function insertMigrationToMigrationListFile(
   tag: string,
   migrationName: string,
