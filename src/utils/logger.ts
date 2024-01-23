@@ -30,6 +30,7 @@ export class Logger {
   }
 
   public error(...message: unknown[]) {
+    // todo handle error instances
     this.outputToConsole(message, 'bright', 'bgRed')
   }
 

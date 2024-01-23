@@ -7,7 +7,9 @@ const entitySchemaRepository = new EntitySchemaRepository(dbQuery)
 
 const server = new Server()
 
-server.get('/', () => entitySchemaRepository.listAll())
+server.get('/', () => {
+  return entitySchemaRepository.listAll()
+})
 server.get('/:entitySchemaId', async (req) => {
   const { entitySchemaId } = req.params
   return entitySchemaRepository.getOne(entitySchemaId)

@@ -88,6 +88,7 @@ export class Server {
       if (!controller) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
         res.end()
+        return
       }
       try {
         const params = getPathParams(req.url ?? '', controller.path)
@@ -103,7 +104,9 @@ export class Server {
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.write(JSON.stringify(responseData))
         res.end()
+        return
       } catch (error) {
+        logger.error(error)
         if (error instanceof Error) {
           res.writeHead(500, { 'Content-Type': 'application/json' })
           const { name, message, stack } = error

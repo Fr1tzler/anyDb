@@ -81,7 +81,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     partialSchema: Partial<EntitySchema>,
   ): Promise<EntitySchema | null> {
     if (!partialSchema.name) {
-      return null
+      throw new Error('no schema name specified')
     }
     const [rawEntitySchema] = await this.dbQuery<EntitySchemaType>(
       `
@@ -157,6 +157,9 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     fields: { fieldName: string; type: FieldType }[],
     entitySchemaId: string,
   ): Promise<void> {
+    if (!fields.length) {
+      return
+    }
     const parametersInsertionString = fields
       .map(
         (_, index) =>
