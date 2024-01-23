@@ -10,7 +10,6 @@ const entityService = new EnttityService(entityRepository)
 
 const server = new Server()
 
-server.get(EntityRoutes.routes.listAll(), () => entityService.listAll())
 server.get(EntityRoutes.routes.listAllBySchemaId(), async (req) => {
   const { entitySchemaId } = req.params
   return entityService.listAllBySchemaId(entitySchemaId)

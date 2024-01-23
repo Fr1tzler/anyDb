@@ -10,7 +10,6 @@ import { getFieldValueFromObjectField, getValueFromFieldValue } from '../utils/f
 export interface IEntityRepository {
   createOne(partialEntity: Partial<Entity>): Promise<Entity>;
   updateOne(id: string, partialEntity: Partial<Entity>): Promise<Entity>;
-  listAll(offset?: number, limit?: number): Promise<IListAllResponse<Entity>>;
   listAllBySchemaId(schemaId: string,offset?: number, limit?: number): Promise<IListAllResponse<Entity>>;
   getOne(id: string): Promise<Entity>;
   deleteOne(id: string): Promise<void>;
@@ -59,26 +58,16 @@ export class EntityRepository implements IEntityRepository {
     return this.getOne(entityId)
   }
 
-  public async listAll(
-    offset: number = 0,
-    limit: number = 20,
-  ): Promise<IListAllResponse<Entity>> {
-    const { total, rawResult } = await this.listEntityBase(offset, limit)
-    const entityIds = mapArrayToArrayKeys(rawResult, 'id')
-    const { allFields, allFieldValues } = await this.getFieldValuesForEntityList(
-      mapArrayToArrayKeys(rawResult, 'entitySchemaId'),
-      entityIds
-    )
-    const result: Entity[] = rawResult.map((entityBase) => {
-      const { fields, fieldValues } = this.filterFieldsByEntity(entityBase, allFields, allFieldValues)
-      return this.mapFieldsToEntity(entityBase, fields, fieldValues)
-    })
-    return { offset, limit, total, result }
-  }
-
-
   public async listAllBySchemaId(entitySchemaId: string, offset: number = 0, limit: number = 20) {
-    const { total, rawResult } = await this.listEntityBase(offset, limit, entitySchemaId)
+    const totalResult = await this.dbQuery<{ count: string }>(
+      'SELECT COUNT(*) AS "count" FROM "Entity" WHERE "entitySchemaId" = $1',
+      [entitySchemaId]
+    )
+    const total = Number(totalResult[0].count)
+    const rawResult = await this.dbQuery<EntityType>(
+      'SELECT * FROM "Entity" WHERE "entitySchemaId" = $3 OFFSET $1 LIMIT $2',
+      [offset, limit, entitySchemaId]
+    )
     const entityIds = mapArrayToArrayKeys(rawResult, 'id')
     const { allFields, allFieldValues } = await this.getFieldValuesForEntityList(entitySchemaId, entityIds)
     const result: Entity[] = rawResult.map((entityBase) => {
@@ -139,19 +128,6 @@ export class EntityRepository implements IEntityRepository {
       [entityId, fieldValueFieldIdsToDelete],
     )
     await this.createEntityFields(fieldValuesToCreate)
-  }
-
-  private async listEntityBase(offset: number = 0, limit: number = 20, entitySchemaId?: string) {
-    const totalResult = await this.dbQuery<{ count: string }>(
-      `SELECT COUNT(*) AS "count" FROM "Entity" ${ entitySchemaId ? 'WHERE "entitySchemaId" = $1' : ''}`,
-      [entitySchemaId || null].filter(Boolean)
-    )
-    const total = Number(totalResult[0].count)
-    const rawResult = await this.dbQuery<EntityType>(
-      `SELECT * FROM "Entity" ${ entitySchemaId ? 'WHERE "entitySchemaId" = $1' : ''} OFFSET $1 LIMIT $2`,
-      [offset, limit, entitySchemaId || null].filter(el => !el && el !== 0)
-    )
-    return { total, rawResult }
   }
 
   private async getFieldValuesForEntityList(schemaId: string | string[], entityIds: string[]) {

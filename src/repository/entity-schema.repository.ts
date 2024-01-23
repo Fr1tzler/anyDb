@@ -3,17 +3,18 @@ import { EntitySchema } from '../entity'
 import { EntitySchemaType, FieldType, SchemaFieldType } from '../types'
 import { IListAllResponse } from '../utils/types'
 
+// todo refactor (priority 4/10)
 export interface IEntitySchemaRepository {
   listAll(
     offset?: number,
     limit?: number,
   ): Promise<IListAllResponse<EntitySchema>>;
-  getOne(entitySchemaId: string): Promise<EntitySchema | null>;
-  createOne(partialSchema: Partial<EntitySchema>): Promise<EntitySchema | null>;
+  getOne(entitySchemaId: string): Promise<EntitySchema>;
+  createOne(partialSchema: Partial<EntitySchema>): Promise<EntitySchema>;
   updateOne(
     entitySchemaId: string,
     partialSchema: Partial<EntitySchema>,
-  ): Promise<EntitySchema | null>;
+  ): Promise<EntitySchema>;
   deleteOne(entitySchemaId: string): Promise<void>;
 }
 
@@ -57,7 +58,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     }
   }
 
-  public async getOne(entitySchemaId: string): Promise<EntitySchema | null> {
+  public async getOne(entitySchemaId: string): Promise<EntitySchema> {
     const [rawEntitySchema] = await this.dbQuery<EntitySchemaType>(
       `
       SELECT * FROM "EntitySchema"
@@ -65,6 +66,9 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
     `,
       [entitySchemaId],
     )
+    if (!rawEntitySchema) {
+      throw new Error('entity schema not found')
+    }
 
     const fields = await this.dbQuery<SchemaFieldType>(
       `
@@ -79,7 +83,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
 
   public async createOne(
     partialSchema: Partial<EntitySchema>,
-  ): Promise<EntitySchema | null> {
+  ): Promise<EntitySchema> {
     if (!partialSchema.name) {
       throw new Error('no schema name specified')
     }
@@ -107,13 +111,13 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
   public async updateOne(
     entitySchemaId: string,
     partialSchema: Partial<EntitySchema>,
-  ): Promise<EntitySchema | null> {
+  ): Promise<EntitySchema> {
     const [existingSchema] = await this.dbQuery<EntitySchemaType>(
       'SELECT * FROM "EntitySchema" WHERE "id" = $1',
       [entitySchemaId],
     )
     if (!existingSchema) {
-      return null
+      throw new Error('entity schema not found')
     }
     const existingFields = await this.dbQuery<SchemaFieldType>(
       'SELECT * FROM "SchemaField" where "entitySchemaId" = $1',

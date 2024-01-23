@@ -4,10 +4,6 @@ import { EntityRepository } from '../repository/entity.repository'
 export class EnttityService {
   constructor (private entiryRepository: EntityRepository) {}
 
-  public listAll(offset?: number, limit?: number) {
-    return this.entiryRepository.listAll(offset, limit)
-  }
-
   public listAllBySchemaId(entitySchemaId: string, offset?: number, limit?: number) {
     return this.entiryRepository.listAllBySchemaId(entitySchemaId, offset, limit)
   }

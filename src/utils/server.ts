@@ -130,9 +130,8 @@ export class Server {
         const responseData = await controller.handler(parsedRequest, res)
 
         res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.write(JSON.stringify(responseData))
+        res.write(JSON.stringify(responseData || {}))
         res.end()
-        return
       } catch (error) {
         logger.error(error)
         if (error instanceof Error) {

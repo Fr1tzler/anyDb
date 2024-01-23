@@ -19,8 +19,7 @@ export const SchemaRoutes: Routes = {
 export const EntityRoutes: Routes = {
   basePath: '/entity',
   routes: {
-    listAllBySchemaId: () => '/by-schema/:entitySchemaId',
-    listAll: () => '/',
+    listAllBySchemaId: (entitySchemaId = ':entitySchemaId') => `/by-schema/${entitySchemaId}`,
     getOne: (entityId = ':entityId') => `/${entityId}`,
     createOne: () => '/',
     updateOne: (entityId = ':entityId') => `/${entityId}`,
