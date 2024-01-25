@@ -104,7 +104,7 @@ export class EntitySchemaRepository implements IEntitySchemaRepository {
         fieldName: key,
         type: (partialSchema[key] || '') as FieldType,
       }))
-    this.createSchemaFields(fieldsToCreate, rawEntitySchema.id)
+    await this.createSchemaFields(fieldsToCreate, rawEntitySchema.id)
     return this.getOne(rawEntitySchema.id)
   }
 

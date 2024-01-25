@@ -4,11 +4,9 @@ import { EndpointRoutes } from '../routes'
 import { EndpointRepository } from '../repository/endpoint.repository'
 import { EndpointService } from '../services/endpoint.service'
 import { Endpoint } from '../entity'
-import { EntityRepository } from '../repository/entity.repository'
 
 const endpointRepository = new EndpointRepository(dbQuery)
-const entityRepository = new EntityRepository(dbQuery)
-const endpointService = new EndpointService(endpointRepository, entityRepository)
+const endpointService = new EndpointService(endpointRepository)
 
 const server = new Server()
 

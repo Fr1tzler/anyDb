@@ -21,14 +21,16 @@ export class EndpointRepository implements IEndpointRepository {
   constructor(private dbQuery: DbQueryExecutor) {}
 
   async listAll(offset: number = 0, limit: number = 20): Promise<IListAllResponse<Endpoint>> {
-    const [totalInfo] = await this.dbQuery<{ total: number }>('SELECT COUNT(*) as total FROM "Endpoint"')
-    const total = totalInfo.total
-    const result = await this.dbQuery<Endpoint>('SELECT * FROM "Endpoint" LIMIT $1 OFFSET $2', [limit, offset])
+    const [totalInfo] = await this.dbQuery<{ total: number }>('SELECT COUNT(*) as total FROM "EndpointGroup"')
+    const total = Number(totalInfo.total)
+    const result = await this.dbQuery<Endpoint>('SELECT * FROM "EndpointGroup" LIMIT $1 OFFSET $2', [limit, offset])
     return { offset, limit, total, result }
   }
 
   async getOne(endpointId: string): Promise<Endpoint> {
-    const [endpoint] =  await this.dbQuery<Endpoint>('SELECT * FROM "Endpoint" WHERE "id" = $1 LIMIT 1', [endpointId])
+    const [endpoint] =  await this.dbQuery<Endpoint>(
+      'SELECT * FROM "EndpointGroup" WHERE "id" = $1 LIMIT 1', [endpointId]
+    )
     if (!endpoint) {
       throw new Error('endpoint not found')
     }
@@ -36,7 +38,7 @@ export class EndpointRepository implements IEndpointRepository {
   }
 
   async getByPath(path: string): Promise<Endpoint> {
-    const [endpoint] =  await this.dbQuery<Endpoint>('SELECT * FROM "Endpoint" WHERE "path" = $1 LIMIT 1', [path])
+    const [endpoint] =  await this.dbQuery<Endpoint>('SELECT * FROM "EndpointGroup" WHERE "path" = $1 LIMIT 1', [path])
     if (!endpoint) {
       throw new Error('endpoint not found')
     }
@@ -59,7 +61,7 @@ export class EndpointRepository implements IEndpointRepository {
     const queryBoolPayload = [
       listAllEnabled, createOneEnabled, getOneEnabled, deleteOneEnabled, updateOneEnabled
     ].map(el => el || false)
-    await this.dbQuery(`
+    const [endpoint] = await this.dbQuery<Endpoint>(`
       INSERT INTO "EndpointGroup" (
         "path",
         "entitySchemaId",
@@ -69,8 +71,9 @@ export class EndpointRepository implements IEndpointRepository {
         "deleteOneEnabled",
         "updateOneEnabled"
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `, [path, entitySchemaId, queryBoolPayload])
-    throw new Error('Method not implemented.')
+      RETURNING *
+    `, [path, entitySchemaId, ...queryBoolPayload])
+    return endpoint
   }
 
   async updateOne(endpointId: string, partialEndpoint: Partial<Endpoint>): Promise<Endpoint> {
@@ -79,13 +82,13 @@ export class EndpointRepository implements IEndpointRepository {
       .filter(key => key || key === false)
     const querySettersPart = usedKeys.map((key: keyof Endpoint, index) => `"${key}" = $${index + 2}`).join(', ')
     await this.dbQuery(
-      `UPDATE "Endpoint" SET ${querySettersPart} WHERE "id" = $1`,
-      [endpointId, usedKeys.map(key => partialEndpoint[key] ?? null)],
+      `UPDATE "EndpointGroup" SET ${querySettersPart} WHERE "id" = $1`,
+      [endpointId, ...usedKeys.map(key => partialEndpoint[key] ?? null)],
     )
     return this.getOne(endpointId)
   }
 
   async deleteOne(endpointId: string): Promise<void> {
-    await this.dbQuery('DELETE FROM "Endpoint" WHERE "id" = $1', [endpointId])
+    await this.dbQuery('DELETE FROM "EndpointGroup" WHERE "id" = $1', [endpointId])
   }
 }

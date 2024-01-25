@@ -5,7 +5,8 @@
 - [X] Custom migration runner
 - [X] Custom server implementation
 - [X] 50% code coverage
-- [ ] 70% code coverage
+- [X] 70% code coverage
+- [X] 80% code coverage
 - [ ] 90% code coverage
 - [ ] 95% code coverage
 - [ ] API reference
@@ -17,6 +18,7 @@
 - [ ] One2many
 - [ ] 50% code coverage
 - [ ] 70% code coverage
+- [ ] 80% code coverage
 - [ ] 90% code coverage
 - [ ] 95% code coverage
 
@@ -25,14 +27,21 @@
 - [ ] Filter by strict property equality
 - [ ] Filter by arithmetic (gt, gte, lt, lte)
 - [ ] Filter by RegExp
+- [ ] 50% code coverage
+- [ ] 70% code coverage
+- [ ] 80% code coverage
+- [ ] 90% code coverage
+- [ ] 95% code coverage
+- [ ] API reference
 
 ## API (Base)
 
 - [X] Endpoint generation
 - [X] Endpoint usage
 - [ ] Pagination support
-- [ ] 50% code coverage
-- [ ] 70% code coverage
+- [X] 50% code coverage
+- [X] 70% code coverage
+- [X] 80% code coverage
 - [ ] 90% code coverage
 - [ ] 95% code coverage
 - [ ] API reference
@@ -40,11 +49,28 @@
 ## API (NoCode)
 
 - [ ] Design
+- [ ] 50% code coverage
+- [ ] 70% code coverage
+- [ ] 80% code coverage
+- [ ] 90% code coverage
+- [ ] 95% code coverage
+- [ ] API reference
 
 ## Auth
 
 - [ ] Design
+- [ ] 50% code coverage
+- [ ] 70% code coverage
+- [ ] 80% code coverage
+- [ ] 90% code coverage
+- [ ] 95% code coverage
+- [ ] API reference
 
 ## Utils
 
 - [ ] Design
+- [ ] 50% code coverage
+- [ ] 70% code coverage
+- [ ] 90% code coverage
+- [ ] 95% code coverage
+- [ ] API reference
