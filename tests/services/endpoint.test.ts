@@ -1,16 +1,16 @@
 import { randomUUID } from 'crypto'
-import { EndpointRepository } from '../../../src/repository/endpoint.repository'
-import { dbQuery } from '../../../src/database/connection'
-import { EndpointService } from '../../../src/services/endpoint.service'
-import { EntitySchemaService } from '../../../src/services/entity-schema.service'
-import { EntitySchemaRepository } from '../../../src/repository/entity-schema.repository'
+import { EndpointRepository } from '../../src/repository/endpoint.repository'
+import { dbQuery } from '../../src/database/connection'
+import { EndpointService } from '../../src/services/endpoint.service'
+import { EntitySchemaService } from '../../src/services/entity-schema.service'
+import { EntitySchemaRepository } from '../../src/repository/entity-schema.repository'
 
 const entitySchemaRepository = new EntitySchemaRepository(dbQuery)
 const entitySchemaService = new EntitySchemaService(entitySchemaRepository)
 const endpointRepository = new EndpointRepository(dbQuery)
 const endpointService = new EndpointService(endpointRepository)
 
-describe('Endpoint API', () => {
+describe('Endpoint service', () => {
   test('should perform CRUD', async () => {
     const endpointPath = randomUUID()
     const schema = await entitySchemaService.createOne({

@@ -76,6 +76,19 @@ export function getPathParams<T extends { [key: string]: string }>(
   return result as T
 }
 
+/**
+ * Retrieves the query parameters from the incoming message and returns them as a record of strings.
+ *
+ * @param {IncomingMessage} req - the incoming message object
+ * @return {Record<string, string>} the query parameters as a record of strings
+ */
+export function getRequestQuery(req: IncomingMessage): Record<string, string> {
+  const query = new URLSearchParams(req.url?.split('?')[1] || '')
+  const result: Record<string, string> = {}
+  query.forEach((value, key) => result[key] = value)
+  return result
+}
+
 // #endregion
 
 // #region REQUEST PARSING
@@ -123,6 +136,7 @@ export class Server {
         const parsedRequest: IncomingRequest = {
           params,
           request: req,
+          query: getRequestQuery(req),
           getBody<T>() {
             return extractBody<T>(req)
           },

@@ -4,6 +4,7 @@ import { EntityRepository } from '../repository/entity.repository'
 import { Entity } from '../entity/entity.entity'
 import { EntityService } from '../services/entity.service'
 import { EntityRoutes } from '../routes'
+import { getOfssetAndLimitFromQuery } from '../utils/query'
 
 const entityRepository = new EntityRepository(dbQuery)
 const entityService = new EntityService(entityRepository)
@@ -12,7 +13,8 @@ const server = new Server()
 
 server.get(EntityRoutes.routes.listAllBySchemaId(), async (req) => {
   const { entitySchemaId } = req.params
-  return entityService.listAllBySchemaId(entitySchemaId)
+  const { offset, limit } = getOfssetAndLimitFromQuery(req.query)
+  return entityService.listAllBySchemaId(entitySchemaId, offset, limit)
 })
 server.get(EntityRoutes.routes.getOne(), async (req) => {
   const { entityId } = req.params

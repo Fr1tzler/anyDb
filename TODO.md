@@ -38,7 +38,7 @@
 
 - [X] Endpoint generation
 - [X] Endpoint usage
-- [ ] Pagination support
+- [X] Pagination support
 - [X] 50% code coverage
 - [X] 70% code coverage
 - [X] 80% code coverage

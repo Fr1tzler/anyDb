@@ -3,13 +3,15 @@ import { EntitySchemaRepository } from '../repository/entity-schema.repository'
 import { dbQuery } from '../database/connection'
 import { EntitySchema } from '../entity'
 import { SchemaRoutes } from '../routes'
+import { getOfssetAndLimitFromQuery } from '../utils/query'
 
 const entitySchemaRepository = new EntitySchemaRepository(dbQuery)
 
 const server = new Server()
 
-server.get(SchemaRoutes.routes.listAll(), () => {
-  return entitySchemaRepository.listAll()
+server.get(SchemaRoutes.routes.listAll(), (req) => {
+  const { offset, limit } = getOfssetAndLimitFromQuery(req.query)
+  return entitySchemaRepository.listAll(offset, limit)
 })
 server.get(SchemaRoutes.routes.getOne(), async (req) => {
   const { entitySchemaId } = req.params

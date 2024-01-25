@@ -1,6 +1,6 @@
-import { dbQuery } from '../../../src/database/connection'
-import { EntitySchemaRepository } from '../../../src/repository/entity-schema.repository'
-import { EntitySchemaService } from '../../../src/services/entity-schema.service'
+import { dbQuery } from '../../src/database/connection'
+import { EntitySchemaRepository } from '../../src/repository/entity-schema.repository'
+import { EntitySchemaService } from '../../src/services/entity-schema.service'
 
 const entitySchemaRepository = new EntitySchemaRepository(dbQuery)
 const entitySchemaService = new EntitySchemaService(entitySchemaRepository)

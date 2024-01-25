@@ -4,14 +4,16 @@ import { EndpointRoutes } from '../routes'
 import { EndpointRepository } from '../repository/endpoint.repository'
 import { EndpointService } from '../services/endpoint.service'
 import { Endpoint } from '../entity'
+import { getOfssetAndLimitFromQuery } from '../utils/query'
 
 const endpointRepository = new EndpointRepository(dbQuery)
 const endpointService = new EndpointService(endpointRepository)
 
 const server = new Server()
 
-server.get(EndpointRoutes.routes.listAll(), async () => {
-  return endpointService.listAll()
+server.get(EndpointRoutes.routes.listAll(), async (req) => {
+  const { offset, limit } = getOfssetAndLimitFromQuery(req.query)
+  return endpointService.listAll(offset, limit)
 })
 server.get(EndpointRoutes.routes.getOne(), async (req) => {
   const { endpointId } = req.params

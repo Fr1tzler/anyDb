@@ -14,7 +14,7 @@ export class EndpointApiService {
   }
 
   public async listEndpointEntities(
-    endpointPath: string, offset: number, limit: number
+    endpointPath: string, offset: number = 0, limit: number = 20
   ): Promise<IListAllResponse<Entity>> {
     const schemaId = await this.validateEndpointAndReturnSchemaId(endpointPath, 'listAllEnabled')
     return await this.entityRepository.listAllBySchemaId(schemaId, offset, limit)

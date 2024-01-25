@@ -10,6 +10,7 @@ export enum HttpMethod {
 
 export type IncomingRequest = {
   request: IncomingMessage,
+  query: Record<string, string>,
   params: Record<string, string>,
   getBody<T>(): Promise<T>,
 };
